@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WinDeck — The Windows controller you already own</title>
+    <meta name="description" content="Turn your Android phone into a powerful wireless Windows controller. Custom app tiles, volume, brightness, media keys, context auto-switching — free, no StreamDeck needed.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            DEFAULT: '#505be1',
+                            glow: '#6366f1',
+                            dark: '#3b43c6',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: #000000;
+            color: #f5f5f7;
+            overflow-x: hidden;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .btn-glow {
+            box-shadow: 0 0 32px rgba(80, 91, 225, 0.45);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-glow:hover {
+            box-shadow: 0 0 45px rgba(80, 91, 225, 0.7);
+            transform: scale(1.02);
+        }
+
+        .hero-glow {
+            position: absolute;
+            bottom: 33%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 700px;
+            height: 400px;
+            border-radius: 9999px;
+            background: #505be1;
+            opacity: 0.12;
+            filter: blur(140px);
+            pointer-events: none;
+        }
+
+        .grid-pattern {
+            background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 64px 64px;
+        }
+
+        .pd-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 24px;
+            transition: border-color 0.3s ease, background 0.3s ease;
+        }
+
+        .pd-card:hover {
+            border-color: rgba(80, 91, 225, 0.4);
+            background: rgba(255, 255, 255, 0.03);
+            box-shadow: 0 10px 40px -10px rgba(80, 91, 225, 0.2);
+        }
+
+        /* Price Comparison Sequential 0.5s Animation */
+        .price-250-wrapper {
+            display: inline-block;
+            position: relative;
+        }
+
+        .price-250 {
+            display: inline-block;
+            transition: opacity 0.5s ease 0.25s, color 0.5s ease 0.25s;
+            opacity: 1;
+            color: #ffffff;
+        }
+
+        /* White Strikethrough Line */
+        .strikethrough-line {
+            position: absolute;
+            left: -6%;
+            top: 52%;
+            width: 112%;
+            height: 4px;
+            border-radius: 9999px;
+            background: #ffffff;
+            transform-origin: left;
+            transform: scaleX(0);
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes jhatkaShake {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(-5px, 2px) rotate(-2deg); }
+            40% { transform: translate(5px, -2px) rotate(2deg); }
+            60% { transform: translate(-3px, 1px) rotate(-1deg); }
+            80% { transform: translate(3px, -1px) rotate(1deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        /* $0 starts completely hidden */
+        .price-0 {
+            opacity: 0;
+            transform: scale(0.75) translateY(12px);
+            transition: opacity 0.5s ease 0.5s, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.5s;
+            color: #505be1;
+            text-shadow: none; /* NO GLOW */
+        }
+
+        /* Active state triggered when scrolled into view */
+        .price-section.animate .strikethrough-line {
+            transform: scaleX(1);
+        }
+
+        .price-section.animate .price-250-wrapper {
+            animation: jhatkaShake 0.5s ease-in-out forwards;
+        }
+
+        .price-section.animate .price-250 {
+            opacity: 0.15;
+            color: rgba(255, 255, 255, 0.2);
+        }
+
+        .price-section.animate .price-0 {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    </style>
+</head>
+<body class="min-h-full flex flex-col bg-black text-[#f5f5f7] antialiased">
+
+    <!-- Top Navigation Header -->
+    <header class="fixed left-0 right-0 top-0 z-50 flex items-center justify-between px-6 sm:px-8 h-14 border-b border-white/[0.06] bg-black/50 backdrop-blur-xl">
+        <!-- Logo without W box -->
+        <a href="#" class="shrink-0 text-[17px] font-bold tracking-tight text-white hover:opacity-90 transition-opacity">
+            win<span class="text-[#505be1]">deck</span>
+        </a>
+        
+        <nav class="hidden md:flex items-center gap-8">
+            <a href="#pc-app" class="text-[13px] text-white/40 hover:text-white/80 transition-colors">Apps</a>
+            <a href="#features" class="text-[13px] text-white/40 hover:text-white/80 transition-colors">Features</a>
+            <a href="#who-its-for" class="text-[13px] text-white/40 hover:text-white/80 transition-colors">Built for</a>
+            <a href="#how-it-works" class="text-[13px] text-white/40 hover:text-white/80 transition-colors">How it works</a>
+        </nav>
+
+        <div class="flex items-center gap-3">
+            <a href="#download" class="shrink-0 text-[13px] font-semibold px-5 py-2 rounded-full bg-white text-black hover:bg-white/90 transition-colors">
+                Download
+            </a>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-24 pb-16 overflow-hidden bg-black grid-pattern">
+            <div class="hero-glow"></div>
+
+            <div class="relative z-10 flex flex-col items-center w-full max-w-5xl">
+                <!-- Version Badge -->
+                <div class="mb-7 inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-[#505be1]/40 bg-[#505be1]/10 text-[11px] text-indigo-300 tracking-widest uppercase shadow-[0_0_20px_rgba(80,91,225,0.2)]">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#505be1] opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-[#505be1]"></span>
+                    </span>
+                    <span>v1.2 — Context Auto-Switch & 2-Way Clipboard</span>
+                    <span class="text-[14px] text-indigo-300">✦</span>
+                </div>
+
+                <h1 class="text-[52px] sm:text-[76px] md:text-[92px] font-bold tracking-[-0.04em] leading-[1.02] max-w-3xl mb-6">
+                    The controller<br/>
+                    <span class="text-[#505be1]">you already own.</span>
+                </h1>
+
+                <p class="text-[17px] sm:text-[19px] text-white/45 max-w-md leading-relaxed font-light mb-10">
+                    Your Android phone is already a controller. WinDeck just turns it on. One tap. Free, forever.
+                </p>
+
+                <div class="flex flex-col sm:flex-row items-center gap-4 mb-14">
+                    <a href="#download" class="inline-flex items-center h-[46px] px-8 rounded-full bg-[#505be1] text-white text-[15px] font-semibold hover:bg-[#3b43c6] transition-colors btn-glow">
+                        Get WinDeck Free
+                    </a>
+                    <a href="#features" class="inline-flex items-center h-[46px] px-8 rounded-full bg-black border border-white/[0.22] text-white text-[15px] font-semibold hover:border-white/40 transition-colors">
+                        Explore Features
+                    </a>
+                </div>
+
+                <!-- Real App Screenshot Frame -->
+                <div class="w-full max-w-4xl relative p-3 rounded-[32px] bg-gradient-to-b from-white/10 to-white/0 border border-white/10 shadow-2xl overflow-hidden">
+                    <div class="rounded-[24px] overflow-hidden bg-black border border-white/5">
+                        <img src="images/showcase.jpg" alt="WinDeck Desktop & Phone Showcase" class="w-full h-auto object-cover rounded-2xl">
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- WinDeck in Action Section -->
+        <section id="pc-app" class="bg-black py-32 overflow-hidden border-t border-white/[0.04]">
+            <div class="relative max-w-6xl mx-auto px-6 text-center md:text-left">
+                <div class="mb-12 max-w-2xl">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#505be1] mb-3">WinDeck in action</p>
+                    <h2 class="text-[36px] sm:text-[48px] font-bold tracking-[-0.03em] leading-[1.06]">
+                        Your PC. Your Phone.<br/>
+                        <span class="text-white/30">One seamless workflow.</span>
+                    </h2>
+                    <p class="mt-4 text-[16px] text-white/45 max-w-lg leading-relaxed">
+                        The Windows PC app organizes your apps into pages. Your phone shows the tiles. Tap one — the app opens instantly on your PC.
+                    </p>
+                </div>
+
+                <div class="rounded-3xl border border-white/10 overflow-hidden shadow-2xl bg-[#080808]">
+                    <img src="images/desktop-app.jpg" alt="WinDeck Windows App Command Center" class="w-full h-auto object-cover">
+                </div>
+                <p class="mt-4 text-[12px] text-white/20 text-center">Real WinDeck PC Desktop Interface • 100% Wireless</p>
+            </div>
+        </section>
+
+        <!-- Key Features Section -->
+        <section id="features" class="py-32 bg-[#050508] border-t border-white/[0.04]">
+            <div class="max-w-6xl mx-auto px-6">
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#505be1] mb-3">Core Features</p>
+                    <h2 class="text-[36px] sm:text-[48px] font-bold tracking-[-0.03em] text-white">
+                        Built to supercharge your PC productivity.
+                    </h2>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                    
+                    <div class="pd-card p-8 flex flex-col justify-between">
+                        <div class="w-12 h-12 rounded-2xl bg-[#505be1]/15 border border-[#505be1]/30 flex items-center justify-center text-[#505be1] mb-6">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">Context Auto-Switching</h3>
+                        <p class="text-white/45 text-sm leading-relaxed">
+                            Automatically switches phone decks based on active PC window (e.g. Google Meet, YouTube, Spotify, VS Code).
+                        </p>
+                    </div>
+
+                    <div class="pd-card p-8 flex flex-col justify-between">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-6">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">2-Way Clipboard Sync</h3>
+                        <p class="text-white/45 text-sm leading-relaxed">
+                            Copy text on PC (Ctrl+C) ➔ Paste on Phone. Copy text on Phone ➔ Paste on PC (Ctrl+V) instantly with loop guards.
+                        </p>
+                    </div>
+
+                    <div class="pd-card p-8 flex flex-col justify-between">
+                        <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-6">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 .895-2 3-2 3 .895 3 2zm12 0c0 1.105-1.343 2-3 2s-3-.895-3-2 .895-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">Live Media Header Card</h3>
+                        <p class="text-white/45 text-sm leading-relaxed">
+                            Displays real-time song title, artist, playback timeline, and album art from Spotify, YouTube & Windows Media.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Download Section with Real Phone & PC Screenshots -->
+        <section id="download" class="relative bg-black py-32 px-6 border-t border-white/[0.04]">
+            <div class="relative max-w-5xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-[40px] sm:text-[56px] font-bold tracking-[-0.03em] leading-tight mb-4">
+                        Get WinDeck.
+                    </h2>
+                    <p class="text-[17px] text-white/45 leading-relaxed">
+                        Two apps. One seamless experience. Free, forever.
+                    </p>
+                </div>
+
+                <!-- Version Warning Banner -->
+                <div class="mb-10 flex flex-col items-center text-center gap-1.5 rounded-2xl border border-amber-500/25 bg-amber-500/[0.06] px-6 py-4">
+                    <span class="text-xl">⚠️</span>
+                    <p class="text-[14px] font-semibold text-amber-300">Both apps must be on v1.2 to work.</p>
+                    <p class="text-[13px] text-amber-400/60">Update both PC Server and Android App to v1.2 before using — one without the other won't connect.</p>
+                </div>
+
+                <!-- 2 Column Download Cards with Real App Images -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    
+                    <!-- Android App Card -->
+                    <div class="pd-card p-6 flex flex-col overflow-hidden">
+                        <div class="h-64 rounded-2xl overflow-hidden mb-6 bg-[#0a0a0a] border border-white/10 flex items-center justify-center p-2">
+                            <img src="images/phone-app.jpg" alt="WinDeck Android App Screenshot" class="h-full w-auto object-contain rounded-xl">
+                        </div>
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#505be1] mb-1">Android App</p>
+                        <h3 class="text-[22px] font-bold tracking-[-0.02em] mb-2">Your Mobile Controller</h3>
+                        <p class="text-[14px] text-white/45 leading-relaxed mb-6 flex-1">
+                            Swipe between custom decks. Tap any tile to trigger macros, control volume, or switch apps on your Windows PC instantly.
+                        </p>
+                        <div class="mt-auto flex flex-col items-center gap-3">
+                            <div class="px-3 py-1 rounded-full border border-[#505be1]/35 bg-[#505be1]/10 text-[11px] font-semibold text-indigo-300">
+                                v1.2 · Latest Release
+                            </div>
+                            <a href="#download" onclick="alert('Starting WinDeck Android APK Download...')" class="w-full py-3.5 rounded-xl bg-[#505be1] text-white font-bold text-center hover:bg-[#3b43c6] transition-colors btn-glow text-sm">
+                                Download APK for Android
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Windows PC App Card -->
+                    <div class="pd-card p-6 flex flex-col overflow-hidden">
+                        <div class="h-64 rounded-2xl overflow-hidden mb-6 bg-[#0a0a0a] border border-white/10 flex items-center justify-center p-2">
+                            <img src="images/desktop-app.jpg" alt="WinDeck PC App Screenshot" class="w-full h-full object-cover rounded-xl">
+                        </div>
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#505be1] mb-1">Windows 10 / 11</p>
+                        <h3 class="text-[22px] font-bold tracking-[-0.02em] mb-2">Your PC Command Center</h3>
+                        <p class="text-[14px] text-white/45 leading-relaxed mb-6 flex-1">
+                            Visual Layout Editor. Manage pages, app shortcuts, and system controls. Persistent fast shell execution with zero delay.
+                        </p>
+                        <div class="mt-auto flex flex-col items-center gap-3">
+                            <div class="px-3 py-1 rounded-full border border-[#505be1]/35 bg-[#505be1]/10 text-[11px] font-semibold text-indigo-300">
+                                v1.2 · Latest Release
+                            </div>
+                            <a href="#download" onclick="alert('Starting WinDeck Windows Server .exe Download...')" class="w-full py-3.5 rounded-xl bg-[#505be1] text-white font-bold text-center hover:bg-[#3b43c6] transition-colors btn-glow text-sm">
+                                Download WinDeck Server (.exe)
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- StreamDeck Price Comparison Section with White Strikethrough & 0.5s Fast Animation -->
+        <section id="comparison" class="price-section bg-black py-32 px-6 border-t border-white/[0.04]">
+            <div class="max-w-4xl mx-auto text-center">
+                <p class="text-[36px] sm:text-[52px] md:text-[64px] font-bold tracking-[-0.03em] leading-[1.08]">
+                    The StreamDeck<br/>
+                    <span class="text-white/30">you already own.</span>
+                </p>
+
+                <div class="mt-16 flex items-center justify-center gap-12 sm:gap-24">
+                    <!-- $250 Hardware StreamDeck -->
+                    <div class="flex flex-col items-center gap-2">
+                        <div class="price-250-wrapper">
+                            <span class="price-250 text-6xl sm:text-8xl font-bold">$250</span>
+                            <div class="strikethrough-line"></div>
+                        </div>
+                        <span class="text-[11px] text-white/20 uppercase tracking-widest font-mono">Hardware StreamDeck</span>
+                    </div>
+
+                    <span class="text-xl text-white/20 font-light">vs</span>
+
+                    <!-- $0 WinDeck -->
+                    <div class="flex flex-col items-center gap-2">
+                        <span class="price-0 text-6xl sm:text-8xl font-bold">$0</span>
+                        <span class="text-[11px] text-[#505be1] font-semibold uppercase tracking-widest font-mono">WinDeck</span>
+                    </div>
+                </div>
+
+                <p class="mt-12 text-[16px] text-white/30 max-w-md mx-auto leading-relaxed font-light">
+                    The hardware is already in your pocket. Or charging on your desk. You paid for it years ago.
+                </p>
+            </div>
+        </section>
+
+        <!-- Use Cases Section with Exact Specified Text -->
+        <section id="who-its-for" class="bg-[#050508] py-32 px-6 border-t border-white/[0.04]">
+            <div class="max-w-5xl mx-auto">
+                <div class="text-center mb-16">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#505be1] mb-3">Why it matters</p>
+                    <h2 class="text-[36px] sm:text-[48px] font-bold tracking-[-0.03em] leading-tight">
+                        Built for people who actually focus.
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    
+                    <!-- Hustler -->
+                    <div class="pd-card p-8 flex flex-col justify-between">
+                        <p class="text-[11px] font-semibold uppercase tracking-widest text-emerald-400 mb-2">For the hustler</p>
+                        <h3 class="text-[22px] font-bold tracking-tight mb-3">Boss walks by. You're already on it.</h3>
+                        <p class="text-white/45 text-[14px] leading-relaxed">
+                            One tap and you're on Slack. No one knows. WinDeck sits beside your PC screen, completely invisible to everyone else.
+                        </p>
+                    </div>
+
+                    <!-- Builder -->
+                    <div class="pd-card p-8 flex flex-col justify-between">
+                        <p class="text-[11px] font-semibold uppercase tracking-widest text-amber-400 mb-2">For the builder</p>
+                        <h3 class="text-[22px] font-bold tracking-tight mb-3">Never break your flow state.</h3>
+                        <p class="text-white/40 text-[14px] leading-relaxed">
+                            Reaching for the mouse kills the momentum. Tap your phone to switch apps, run scripts, or adjust volume without leaving the keyboard.
+                        </p>
+                    </div>
+
+                    <!-- Minimalist -->
+                    <div class="pd-card p-8 flex flex-col justify-between">
+                        <p class="text-[11px] font-semibold uppercase tracking-widest text-pink-400 mb-2">For the minimalist</p>
+                        <h3 class="text-[22px] font-bold tracking-tight mb-3">A clean desk. Zero extra cables.</h3>
+                        <p class="text-white/40 text-[14px] leading-relaxed">
+                            No USB dongles. No clunky plastic hardware box. Just the phone already sitting on your desk.
+                        </p>
+                    </div>
+
+                    <!-- Creator -->
+                    <div class="pd-card p-8 flex flex-col justify-between">
+                        <p class="text-[11px] font-semibold uppercase tracking-widest text-purple-400 mb-2">For the creator</p>
+                        <h3 class="text-[22px] font-bold tracking-tight mb-3">Go live. Stay in control.</h3>
+                        <p class="text-white/40 text-[14px] leading-relaxed">
+                            Switch between OBS, your browser, and chat in one tap. No mouse lag. Just pure control over your Windows PC.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- 3 Step How It Works -->
+        <section id="how-it-works" class="bg-black py-32 px-6 border-t border-white/[0.04]">
+            <div class="max-w-5xl mx-auto">
+                <div class="text-center mb-16">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#505be1] mb-3">How it works</p>
+                    <h2 class="text-[36px] sm:text-[48px] font-bold tracking-[-0.03em]">Set up in under a minute.</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    
+                    <div class="pd-card p-8 text-center">
+                        <span class="text-3xl font-extrabold text-[#505be1] block mb-4">01</span>
+                        <h3 class="text-[18px] font-semibold mb-2">Get WinDeck</h3>
+                        <p class="text-[13px] text-white/45 leading-relaxed">
+                            Download the PC Server for Windows and the APK for Android. Takes 30 seconds.
+                        </p>
+                    </div>
+
+                    <div class="pd-card p-8 text-center">
+                        <span class="text-3xl font-extrabold text-emerald-400 block mb-4">02</span>
+                        <h3 class="text-[18px] font-semibold mb-2">Connect over Wi-Fi</h3>
+                        <p class="text-[13px] text-white/45 leading-relaxed">
+                            Same local network. Enter the 6-digit OTP code shown on your PC screen into your phone.
+                        </p>
+                    </div>
+
+                    <div class="pd-card p-8 text-center">
+                        <span class="text-3xl font-extrabold text-purple-400 block mb-4">03</span>
+                        <h3 class="text-[18px] font-semibold mb-2">Control your PC</h3>
+                        <p class="text-[13px] text-white/45 leading-relaxed">
+                            Launch apps, switch pages automatically, sync clipboards, and control system volume.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Privacy Section -->
+        <section class="bg-[#050508] py-24 px-6 border-t border-white/[0.04] text-center">
+            <div class="max-w-3xl mx-auto">
+                <p class="text-[11px] font-semibold uppercase tracking-widest text-[#505be1] mb-3">Privacy First</p>
+                <h2 class="text-3xl sm:text-4xl font-bold mb-4">Nothing leaves your local network.</h2>
+                <p class="text-white/45 text-sm leading-relaxed max-w-xl mx-auto">
+                    No external cloud servers. No accounts required. No tracking. WinDeck communicates 100% locally over your home Wi-Fi via zero-latency WebSockets.
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-12 border-t border-white/[0.06] text-center text-xs text-white/30 bg-black">
+        <div class="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>© 2026 WinDeck. Turn your phone into a Windows Stream Deck.</p>
+            <div class="flex gap-6">
+                <a href="#download" class="hover:text-white">Download</a>
+                <a href="#features" class="hover:text-white">Features</a>
+                <a href="#how-it-works" class="hover:text-white">How it works</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scroll for all internal links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const targetId = this.getAttribute('href');
+                if (targetId && targetId !== '#') {
+                    e.preventDefault();
+                    const targetEl = document.querySelector(targetId);
+                    if (targetEl) {
+                        targetEl.scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+            });
+        });
+
+        // Price comparison scroll animation (0.5s duration, White strikethrough line)
+        const priceSection = document.querySelector('.price-section');
+        if (priceSection) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        priceSection.classList.add('animate');
+                    } else {
+                        priceSection.classList.remove('animate');
+                    }
+                });
+            }, { threshold: 0.35 });
+            observer.observe(priceSection);
+        }
+    </script>
+</body>
+</html>

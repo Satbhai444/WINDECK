@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>WinDeck — Turn your phone into a wireless Windows controller</title>
+    <meta name="description" content="WinDeck turns your Android phone into a powerful wireless Windows controller. Custom app tiles, volume, media keys — no StreamDeck needed. Free."/>
+    <meta name="keywords" content="Android Windows controller,StreamDeck alternative,free StreamDeck,phone as controller,wireless Windows controller,WinDeck"/>
+    <link rel="canonical" href="https://windeck.app"/>
+    <meta property="og:title" content="WinDeck — Your phone is already a controller"/>
+    <meta property="og:description" content="Turn your Android phone into a wireless Windows controller. Free, no hardware needed."/>
+    <meta property="og:type" content="website"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+        /* ── Fade-up scroll animation ── */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+        .fade-up-delay-1 { transition-delay: 0.1s; }
+        .fade-up-delay-2 { transition-delay: 0.2s; }
+        .fade-up-delay-3 { transition-delay: 0.3s; }
+        .fade-up-delay-4 { transition-delay: 0.4s; }
+        .fade-up-delay-5 { transition-delay: 0.5s; }
+
+        /* ── Scale-in for the showcase image ── */
+        .scale-in {
+            transform: scale(0.88) translateY(40px);
+            opacity: 0;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            transition: transform 1.1s cubic-bezier(0.16, 1, 0.3, 1),
+                        opacity 0.7s ease,
+                        box-shadow 1.1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .scale-in.visible {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+            box-shadow: 0 60px 120px rgba(0,0,0,0.7);
+        }
+
+        /* ── Slide-in for the devices showcase ── */
+        .slide-in {
+            transform: translateX(-32px) translateY(56px);
+            opacity: 0;
+            transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease;
+        }
+        .slide-in.visible {
+            transform: translateX(-80px) translateY(0);
+            opacity: 1;
+        }
+
+        /* ── Price strike-through animation ── */
+        .price-strike .strike-line {
+            transform: scaleX(0);
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s;
+        }
+        .price-strike.visible .strike-line {
+            transform: scaleX(1);
+        }
+        .price-strike .price-old {
+            transition: opacity 0.5s ease 0.9s, filter 0.5s ease 0.9s;
+        }
+        .price-strike.visible .price-old {
+            opacity: 0.15 !important;
+            filter: blur(2px);
+        }
+        .price-strike .price-free {
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.7s,
+                        transform 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.7s,
+                        text-shadow 0.7s ease 0.7s;
+        }
+        .price-strike.visible .price-free {
+            opacity: 1;
+            transform: scale(1);
+            text-shadow: 0 0 60px rgba(0,120,212,0.8), 0 0 120px rgba(0,120,212,0.4);
+        }
+        .price-strike .label-windeck {
+            color: transparent;
+            transition: color 0.5s ease 1s;
+        }
+        .price-strike.visible .label-windeck {
+            color: #0078d4;
+        }
+        .price-strike .label-old {
+            transition: opacity 0.5s ease 0.9s;
+        }
+        .price-strike.visible .label-old {
+            opacity: 0.1 !important;
+        }
+
+        /* ── Carousel ── */
+        .carousel-track {
+            display: flex;
+            gap: 10px;
+            transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .carousel-slide {
+            flex-shrink: 0;
+            width: 300px;
+            transition: opacity 0.5s, transform 0.5s;
+        }
+
+        /* ── Glow button ── */
+        .btn-glow { box-shadow: 0 0 32px rgba(0,120,212,0.35); }
+        .btn-glow:hover { box-shadow: 0 0 48px rgba(0,120,212,0.5); }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+    </style>
+</head>
+<body class="min-h-full flex flex-col bg-black text-[#f5f5f7] antialiased">
+
+<!-- ═══════════════════════════════════ HEADER ═══════════════════════════════════ -->
+<header class="fixed left-0 right-0 z-50 flex items-center justify-between px-6 sm:px-8 h-14 border-b transition-all duration-500" style="top:0;border-color:rgba(255,255,255,0.06);background:rgba(0,0,0,0.5);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)">
+    <a href="/" class="shrink-0"><span class="text-[15px] font-semibold tracking-tight">win<span class="text-[#0078d4]">deck</span></span></a>
+    <nav class="hidden md:flex items-center gap-8">
+        <a href="#windows-app" class="text-[13px] text-white/40 hover:text-white/80 transition-colors">Apps</a>
+        <a href="#who-its-for" class="text-[13px] text-white/40 hover:text-white/80 transition-colors">Built for</a>
+        <a href="#how-it-works" class="text-[13px] text-white/40 hover:text-white/80 transition-colors">How it works</a>
+    </nav>
+    <div class="flex items-center gap-3">
+        <a href="/download.html" class="shrink-0 text-[13px] font-medium px-4 py-1.5 rounded-full bg-white text-black hover:bg-white/90 transition-colors">Download</a>
+        <!-- Mobile hamburger -->
+        <button class="md:hidden flex flex-col justify-center items-center w-8 h-8 gap-1.5" aria-label="Toggle menu" onclick="document.getElementById('mobile-menu').classList.toggle('menu-open')">
+            <span class="block w-5 h-px bg-white transition-all duration-300 origin-center"></span>
+            <span class="block w-5 h-px bg-white transition-all duration-300"></span>
+            <span class="block w-5 h-px bg-white transition-all duration-300 origin-center"></span>
+        </button>
+    </div>
+</header>
+
+<!-- Mobile menu -->
+<div id="mobile-menu" class="fixed left-0 right-0 z-40 md:hidden border-b border-white/[0.06] transition-all duration-300 overflow-hidden" style="top:56px;max-height:0px;background:rgba(0,0,0,0.95);backdrop-filter:blur(48px)">
+    <nav class="flex flex-col px-6 py-4 gap-1">
+        <a href="#windows-app" class="text-[16px] text-white/50 hover:text-white py-3 border-b border-white/[0.05] transition-colors">Apps</a>
+        <a href="#who-its-for" class="text-[16px] text-white/50 hover:text-white py-3 border-b border-white/[0.05] transition-colors">Built for</a>
+        <a href="#how-it-works" class="text-[16px] text-white/50 hover:text-white py-3 transition-colors">How it works</a>
+    </nav>
+</div>
+<style>.menu-open { max-height: 200px !important; }</style>
+
+<main>
+
+<!-- ═══════════════════════════════════ HERO ═══════════════════════════════════ -->
+<section class="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-12 overflow-hidden bg-black">
+    <!-- Grid background -->
+    <div class="absolute inset-0 opacity-[0.025] pointer-events-none" style="background-image:linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px);background-size:64px 64px"></div>
+    <!-- Glow -->
+    <div class="absolute bottom-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full bg-[#0078d4] opacity-[0.07] blur-[140px] pointer-events-none"></div>
+
+    <div class="relative z-10 flex flex-col items-center w-full max-w-5xl">
+        <!-- Badge -->
+        <div class="fade-up mb-7 inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-green-500/30 bg-green-500/10 text-[11px] text-white/70 tracking-widest uppercase shadow-[0_0_20px_rgba(34,197,94,0.15)]">
+            <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
+            </span>v1.0 — Now Available
+        </div>
+
+        <!-- Headline -->
+        <h1 class="fade-up fade-up-delay-1 text-[60px] sm:text-[80px] md:text-[96px] font-bold tracking-[-0.04em] leading-[1.02] max-w-3xl mb-6">
+            The controller<br/><span class="text-[#0078d4]">you already own.</span>
+        </h1>
+
+        <!-- Subtitle -->
+        <p class="fade-up fade-up-delay-2 text-[17px] sm:text-[19px] text-white/45 max-w-md leading-relaxed font-light mb-10">
+            Your phone is already a controller. WinDeck just turns it on. One tap. Free, forever.
+        </p>
+
+        <!-- CTA Buttons -->
+        <div class="fade-up fade-up-delay-3 flex flex-col sm:flex-row items-center gap-4 mb-16">
+            <a href="/download.html" class="btn-glow inline-flex items-center h-[44px] px-7 rounded-full bg-[#0078d4] text-white text-[15px] font-semibold hover:bg-[#006abb] transition-colors">Get WinDeck</a>
+            <a href="#how-it-works" class="inline-flex items-center h-[44px] px-7 rounded-full bg-black border border-white/[0.22] text-white text-[15px] font-semibold hover:border-white/40 transition-colors">See how it works</a>
+        </div>
+
+        <!-- Phone Screenshot Carousel -->
+        <div class="fade-up fade-up-delay-3 w-full flex flex-col items-center gap-5">
+            <div style="width:348px;max-width:100%;overflow:hidden;position:relative">
+                <!-- Edge fades -->
+                <div class="absolute left-0 top-0 bottom-0 pointer-events-none z-10" style="width:16px;background:linear-gradient(to right, #000 30%, transparent)"></div>
+                <div class="absolute right-0 top-0 bottom-0 pointer-events-none z-10" style="width:16px;background:linear-gradient(to left, #000 30%, transparent)"></div>
+                <div id="carousel-track" class="carousel-track" style="transform:translateX(16px)">
+                    <!-- Slides generated by JS -->
+                </div>
+            </div>
+            <div class="flex gap-2" id="carousel-dots"></div>
+        </div>
+    </div>
+
+    <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent pointer-events-none"></div>
+</section>
+
+<!-- ═══════════════════════════════════ DOWNLOAD ═══════════════════════════════════ -->
+<section id="download" class="relative bg-black py-40 px-6 border-t border-white/[0.04] overflow-hidden">
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-[#0078d4] opacity-[0.06] blur-[140px] pointer-events-none"></div>
+    <div class="relative max-w-5xl mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="fade-up text-[40px] sm:text-[56px] font-bold tracking-[-0.03em] leading-tight mb-4">Get WinDeck.</h2>
+            <p class="fade-up fade-up-delay-1 text-[17px] text-white/45 leading-relaxed">Two apps. One seamless experience. Free, forever.</p>
+        </div>
+
+        <!-- Warning -->
+        <div class="fade-up fade-up-delay-1 mb-8 flex flex-col items-center text-center gap-1.5 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] px-5 py-4">
+            <span class="text-[22px] leading-none">⚠</span>
+            <p class="text-[14px] font-semibold text-amber-300 leading-snug">Both apps must be on the same version to connect.</p>
+            <p class="text-[13px] text-amber-400/60 leading-snug">Download both the Windows app and the Android app to get started.</p>
+        </div>
+
+        <!-- Download Cards -->
+        <div class="fade-up fade-up-delay-2 grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <!-- Android Card -->
+            <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] overflow-hidden flex flex-col">
+                <div class="relative h-72 bg-[#0a0a0a] flex items-center justify-center px-6 py-5">
+                    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-56 h-10 bg-[#0078d4] opacity-15 blur-[30px] rounded-full pointer-events-none"></div>
+                    <div class="relative w-full bg-black border border-white/[0.12] overflow-hidden shadow-[0_60px_120px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.07)]" style="border-radius:32px">
+                        <img alt="WinDeck Android — apps and controls" loading="lazy" class="w-full h-auto block" src="./images/phone-app.jpg"/>
+                    </div>
+                </div>
+                <div class="p-8 flex flex-col flex-1">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#0078d4] mb-3">Android</p>
+                    <h3 class="text-[24px] font-bold tracking-[-0.02em] mb-3">Your controller</h3>
+                    <p class="text-[15px] text-white/45 leading-relaxed mb-8 flex-1">Swipe between pages. Tap any tile to launch an app on your PC instantly. 2 columns, 4 rows — 8 apps per page.</p>
+                    <div class="mt-auto flex flex-col items-center gap-2">
+                        <div class="flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#0078d4]/35 bg-[#0078d4]/10 text-[11px] font-semibold text-[#5ea8e8] tracking-wide">
+                            <svg width="8" height="8" viewBox="0 0 8 8" fill="none" class="shrink-0"><circle cx="4" cy="4" r="3" fill="#0078d4" opacity="0.8"></circle><circle cx="4" cy="4" r="1.5" fill="#7dc3ff"></circle></svg>v1.0 · Latest Release
+                        </div>
+                        <a href="/download.html" class="btn-glow inline-flex h-[56px] w-[190px] items-center justify-center rounded-[14px] bg-[#0078d4] text-[15px] font-semibold text-white shadow-[0_18px_45px_rgba(0,0,0,0.45)] transition-all hover:scale-[1.02] hover:bg-[#006abb]">Download APK</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Windows Card -->
+            <div class="rounded-2xl border border-white/[0.07] bg-white/[0.02] overflow-hidden flex flex-col">
+                <div class="relative h-72 overflow-hidden bg-[#0a0a0a]">
+                    <img alt="WinDeck Windows app" loading="lazy" class="w-full h-full object-cover object-top" src="./images/desktop-app.jpg"/>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                </div>
+                <div class="p-8 flex flex-col flex-1">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#0078d4] mb-3">Windows</p>
+                    <h3 class="text-[24px] font-bold tracking-[-0.02em] mb-3">Your command center</h3>
+                    <p class="text-[15px] text-white/45 leading-relaxed mb-8 flex-1">Runs in the background, discovers your apps, generates a 6-digit pairing code. Enter it on your phone and you're connected.</p>
+                    <div class="mt-auto flex flex-col items-center gap-2">
+                        <div class="flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#0078d4]/35 bg-[#0078d4]/10 text-[11px] font-semibold text-[#5ea8e8] tracking-wide">
+                            <svg width="8" height="8" viewBox="0 0 8 8" fill="none" class="shrink-0"><circle cx="4" cy="4" r="3" fill="#0078d4" opacity="0.8"></circle><circle cx="4" cy="4" r="1.5" fill="#7dc3ff"></circle></svg>v1.0 · Latest Release
+                        </div>
+                        <a href="/download.html" class="btn-glow inline-flex h-[56px] w-[190px] items-center justify-center rounded-[14px] bg-[#0078d4] text-[15px] font-semibold text-white shadow-[0_18px_45px_rgba(0,0,0,0.45)] transition-all hover:scale-[1.02] hover:bg-[#006abb]">Download for Windows</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-10 text-center">
+            <button type="button" class="text-[12px] text-white/50 border border-white/[0.15] px-4 py-1.5 rounded-full hover:text-white/70 hover:border-white/30 transition-colors">Email me when new features ship →</button>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════ PRODUCT SHOWCASE ═══════════════════════════════════ -->
+<section id="product" class="bg-black py-24 overflow-hidden border-t border-white/[0.04]">
+    <div class="relative max-w-6xl mx-auto px-6">
+        <div class="absolute top-0 right-0 w-[500px] h-[350px] rounded-full bg-[#001a5e] opacity-50 blur-[120px] pointer-events-none"></div>
+        <div class="mb-12 max-w-2xl">
+            <p class="fade-up text-[11px] font-semibold uppercase tracking-[0.18em] text-[#0078d4] mb-4">WinDeck in action</p>
+            <h2 class="fade-up fade-up-delay-1 text-[36px] sm:text-[48px] font-bold tracking-[-0.03em] leading-[1.06]">Your PC. Your Phone.<br/><span class="text-white/30">One workflow.</span></h2>
+            <p class="fade-up fade-up-delay-2 mt-4 text-[16px] text-white/45 max-w-lg leading-relaxed">The Windows app organises your apps. Your phone shows the tiles. Tap one — the app opens instantly on your PC.</p>
+        </div>
+        <div style="overflow:hidden">
+            <div class="slide-in relative" style="max-width:1100px">
+                <img alt="WinDeck — Windows app with Android controller" class="w-full h-auto" src="./images/showcase.jpg"/>
+            </div>
+        </div>
+        <p class="fade-up mt-5 text-[12px] text-white/20 text-center">Real setup · No staging · 100% wireless</p>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════ STREAMDECK COMPARISON ═══════════════════════════════════ -->
+<section class="bg-black py-40 px-6 border-t border-white/[0.04]">
+    <div class="max-w-4xl mx-auto text-center">
+        <p class="fade-up text-[36px] sm:text-[52px] md:text-[64px] font-bold tracking-[-0.03em] leading-[1.08]">The StreamDeck<br/><span class="text-white/30">you already own.</span></p>
+        <div class="fade-up fade-up-delay-1 price-strike mt-16 flex items-center justify-center gap-10 sm:gap-20">
+            <div class="flex flex-col items-center gap-3">
+                <div class="relative inline-block price-old">
+                    <span style="display:block;font-size:clamp(56px, 8vw, 88px);font-weight:700;letter-spacing:-0.04em;line-height:1;color:rgba(255,255,255,0.55)">$250</span>
+                    <span class="strike-line" style="position:absolute;left:-4%;top:52%;width:108%;height:4px;border-radius:9999px;background:rgba(255,255,255,0.6);transform-origin:left"></span>
+                </div>
+                <span class="text-[11px] text-white/15 uppercase tracking-widest label-old" style="opacity:1">StreamDeck</span>
+            </div>
+            <span class="text-[14px] text-white/15 font-light">vs</span>
+            <div class="flex flex-col items-center gap-3">
+                <span class="price-free" style="display:block;font-size:clamp(56px, 8vw, 88px);font-weight:700;letter-spacing:-0.04em;line-height:1;color:white">$0</span>
+                <span class="label-windeck" style="font-size:11px;text-transform:uppercase;letter-spacing:0.18em">WinDeck</span>
+            </div>
+        </div>
+        <p class="fade-up fade-up-delay-2 mt-12 text-[16px] text-white/25 max-w-md mx-auto leading-relaxed font-light">The hardware is already in your pocket. Or charging on your desk. You paid for it years ago.</p>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════ WINDOWS APP ═══════════════════════════════════ -->
+<section id="windows-app" class="bg-[#080808] py-36 px-6 border-t border-white/[0.04]">
+    <div class="max-w-5xl mx-auto">
+        <div class="mb-16">
+            <p class="fade-up text-[11px] font-semibold uppercase tracking-[0.18em] text-[#0078d4] mb-4">Windows</p>
+            <h2 class="fade-up fade-up-delay-1 text-[40px] sm:text-[56px] font-bold tracking-[-0.03em] leading-[1.06] max-w-2xl">
+                <span class="text-white/35">Most controllers give you 8 buttons.</span><br/>WinDeck gives you <span style="text-shadow:0 0 40px rgba(0,120,212,0.7), 0 0 80px rgba(0,120,212,0.35)">unlimited pages.</span>
+            </h2>
+            <p class="fade-up fade-up-delay-2 mt-5 text-[16px] text-white/45 max-w-xl leading-relaxed">Pages, drag & drop, a full app library, live preview. Everything your workflow needs, running silently on your PC.</p>
+        </div>
+        <div class="scale-in relative rounded-2xl overflow-hidden border border-white/[0.06]">
+            <img alt="WinDeck Windows app" class="w-full h-auto" src="./images/desktop-app.jpg"/>
+        </div>
+        <div class="fade-up mt-10 flex flex-col items-center gap-3">
+            <a href="/download.html" class="btn-glow px-7 py-3 rounded-full bg-[#0078d4] text-white text-[15px] font-semibold hover:bg-[#006abb] transition-colors">Download for Windows</a>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════ CONTROLS ═══════════════════════════════════ -->
+<section class="bg-black py-36 px-6 border-t border-white/[0.04]">
+    <div class="max-w-5xl mx-auto mb-32 pb-20 border-b border-white/[0.04]">
+        <div class="flex flex-col items-start text-left mb-14">
+            <p class="fade-up text-[11px] font-semibold uppercase tracking-[0.18em] text-[#0078d4] mb-4">Controls</p>
+            <h2 class="fade-up fade-up-delay-1 text-[40px] sm:text-[52px] font-bold tracking-[-0.03em] leading-[1.06] mb-6">Every key.<br/><span class="text-white/30">On your phone.</span></h2>
+            <p class="fade-up fade-up-delay-2 text-[17px] text-white/45 leading-relaxed max-w-md mb-5">Volume, media playback, lock screen, mute, shutdown — every system control at your fingertips.</p>
+            <p class="fade-up fade-up-delay-3 text-[17px] text-white/45 leading-relaxed max-w-md mb-5">Your PC's entire function row, in your hand.</p>
+        </div>
+        <!-- Controls visual -->
+        <div class="fade-up relative w-full mx-auto" style="max-width:660px">
+            <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-64 h-10 bg-[#0078d4] opacity-20 blur-[40px] rounded-full"></div>
+            <div class="relative bg-black border border-white/[0.12] overflow-hidden shadow-[0_60px_120px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.07)] rounded-3xl p-8">
+                <div class="grid grid-cols-4 gap-4">
+                    <div class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-colors cursor-pointer">
+                        <span class="text-2xl">🔇</span><span class="text-[10px] text-white/40">Mute</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-colors cursor-pointer">
+                        <span class="text-2xl">🔉</span><span class="text-[10px] text-white/40">Vol Down</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-colors cursor-pointer">
+                        <span class="text-2xl">🔊</span><span class="text-[10px] text-white/40">Vol Up</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-colors cursor-pointer">
+                        <span class="text-2xl">⏯️</span><span class="text-[10px] text-white/40">Play/Pause</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-colors cursor-pointer">
+                        <span class="text-2xl">⏮️</span><span class="text-[10px] text-white/40">Previous</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-colors cursor-pointer">
+                        <span class="text-2xl">⏭️</span><span class="text-[10px] text-white/40">Next</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-colors cursor-pointer">
+                        <span class="text-2xl">🔒</span><span class="text-[10px] text-white/40">Lock</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-colors cursor-pointer">
+                        <span class="text-2xl">📸</span><span class="text-[10px] text-white/40">Screenshot</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Phone section -->
+    <div class="max-w-5xl mx-auto flex flex-col lg:flex-row items-center gap-20">
+        <div class="fade-up relative shrink-0">
+            <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-48 h-16 bg-[#0078d4] opacity-20 blur-[40px] rounded-full"></div>
+            <div class="relative bg-black border border-white/[0.12] overflow-hidden shadow-[0_60px_120px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.07)]" style="width:260px;border-radius:52px">
+                <img alt="WinDeck Android app" class="w-full h-auto" src="./images/phone-app.jpg"/>
+            </div>
+        </div>
+        <div class="flex flex-col items-start text-left">
+            <p class="fade-up text-[11px] font-semibold uppercase tracking-[0.18em] text-[#0078d4] mb-4">Android</p>
+            <h2 class="fade-up fade-up-delay-1 text-[40px] sm:text-[52px] font-bold tracking-[-0.03em] leading-[1.06] mb-6">Pick up.<br/>Tap.<br/><span class="text-[#0078d4]">Done.</span></h2>
+            <p class="fade-up fade-up-delay-2 text-[17px] text-white/45 leading-relaxed max-w-md mb-5">Open WinDeck on your phone, enter the 6-digit code from your PC, and you're instantly connected. No IP addresses, no manual setup.</p>
+            <p class="fade-up fade-up-delay-3 text-[17px] text-white/45 leading-relaxed max-w-md mb-5">Swipe between pages — Work, Gaming, Music. Tap any tile to instantly launch that app on your PC. 8 tiles per page, perfectly organized.</p>
+            <p class="fade-up fade-up-delay-4 text-[17px] text-white/45 leading-relaxed max-w-md mb-5">Add a home screen widget to launch your most-used PC apps without even opening the app.</p>
+            <p class="fade-up fade-up-delay-5 text-[15px] text-white/40 leading-relaxed max-w-md mb-8">Requires Android 8+. Works on any phone.</p>
+            <a href="/download.html" class="fade-up fade-up-delay-5 btn-glow px-7 py-3 rounded-full bg-[#0078d4] text-white text-[15px] font-semibold hover:bg-[#006abb] transition-colors">Download APK</a>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════ BUILT FOR ═══════════════════════════════════ -->
+<section id="who-its-for" class="bg-[#080808] py-36 px-6 border-t border-white/[0.04]">
+    <div class="max-w-5xl mx-auto">
+        <div class="text-center mb-20">
+            <p class="fade-up text-[11px] font-semibold uppercase tracking-[0.18em] text-[#0078d4] mb-4">Why it matters</p>
+            <h2 class="fade-up fade-up-delay-1 text-[40px] sm:text-[52px] font-bold tracking-[-0.03em] leading-[1.06]">Built for people<br/><span class="text-white/60">who actually </span><span class="text-[#0078d4]">focus.</span></h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Hustler -->
+            <div class="fade-up fade-up-delay-1 rounded-3xl border border-white/[0.05] bg-black p-8 flex flex-col gap-6">
+                <div class="h-20 flex items-center">
+                    <div class="flex flex-col gap-2 w-full max-w-[200px]">
+                        <div class="flex gap-1.5">
+                            <div class="px-2.5 py-1 rounded-t-md text-[10px]" style="background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.3)">Side Project</div>
+                            <div class="px-2.5 py-1 rounded-t-md text-[10px]" style="background:#22c55e18;border-bottom:1.5px solid #22c55e;color:#22c55e">Teams</div>
+                            <div class="px-2.5 py-1 rounded-t-md text-[10px]" style="background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.3)">Email</div>
+                        </div>
+                        <div class="h-16 rounded-b-lg rounded-tr-lg bg-white/[0.03] border border-white/[0.06] p-3 flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-full bg-[#22c55e]/20 flex items-center justify-center"><div class="w-2 h-2 rounded-full bg-[#22c55e]"></div></div>
+                            <div class="flex flex-col gap-1"><div class="h-1.5 w-20 bg-white/20 rounded-full"></div><div class="h-1.5 w-14 bg-white/10 rounded-full"></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.16em] mb-3" style="color:#4ade80">For the hustler</p>
+                    <h3 class="text-[22px] sm:text-[26px] font-bold tracking-tight leading-tight mb-3">Boss walks by.<br/>You're already on it.</h3>
+                    <p class="text-white/45 leading-relaxed text-[14px] max-w-md">One tap and you're on Teams. No one knows. WinDeck sits beside your PC, invisible to everyone else.</p>
+                </div>
+            </div>
+
+            <!-- Builder -->
+            <div class="fade-up fade-up-delay-2 rounded-3xl border border-white/[0.05] bg-black p-8 flex flex-col gap-6">
+                <div class="h-20 flex items-center">
+                    <div class="flex flex-col gap-2">
+                        <div class="flex items-center gap-2">
+                            <div class="px-2.5 py-1.5 rounded-lg bg-[#f59e0b]/10 border border-[#f59e0b]/30 text-[11px] text-[#f59e0b]">Ctrl</div>
+                            <div class="text-white/20 text-xs">+</div>
+                            <div class="px-2.5 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[11px] text-white/40">Tab</div>
+                            <div class="text-white/20 text-xs mx-1">→</div>
+                            <div class="px-2.5 py-1.5 rounded-lg bg-[#f59e0b]/10 border border-[#f59e0b]/30 text-[11px] text-[#f59e0b]">WinDeck</div>
+                        </div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <div class="w-2 h-2 rounded-full bg-[#f59e0b] animate-pulse"></div>
+                            <span class="text-[11px] text-white/30">Flow uninterrupted</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.16em] mb-3" style="color:#fbbf24">For the builder</p>
+                    <h3 class="text-[22px] sm:text-[26px] font-bold tracking-tight leading-tight mb-3">Never break<br/>your flow state.</h3>
+                    <p class="text-white/45 leading-relaxed text-[14px] max-w-md">Reaching for the mouse kills the moment. Tap to switch. Keep your hands on the keyboard. Keep going.</p>
+                </div>
+            </div>
+
+            <!-- Minimalist -->
+            <div class="fade-up fade-up-delay-1 rounded-3xl border border-white/[0.05] bg-black p-8 flex flex-col gap-6">
+                <div class="h-20 flex items-center">
+                    <div class="flex items-end gap-3">
+                        <div class="flex flex-col items-center gap-1.5">
+                            <div class="w-16 h-10 rounded-lg bg-white/[0.04] border border-white/[0.08] flex items-center justify-center"><div class="w-8 h-6 rounded bg-white/10"></div></div>
+                            <div class="w-20 h-1.5 rounded bg-white/[0.06]"></div>
+                            <span class="text-[10px] text-white/20">Laptop</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1.5 mb-3">
+                            <div class="w-7 h-12 rounded-lg border-2 border-[#ec4899]/40 bg-[#ec4899]/5 flex items-center justify-center"><div class="w-4 h-6 rounded-sm bg-[#ec4899]/20"></div></div>
+                            <span class="text-[10px] text-[#ec4899]/60">Phone</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1.5 opacity-30 mb-3">
+                            <div class="w-10 h-10 rounded-lg border border-dashed border-white/20 flex items-center justify-center"><span class="text-white/30 text-lg">✕</span></div>
+                            <span class="text-[10px] text-white/20 line-through">StreamDeck</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.16em] mb-3" style="color:#f472b6">For the minimalist</p>
+                    <h3 class="text-[22px] sm:text-[26px] font-bold tracking-tight leading-tight mb-3">A clean desk.<br/>Zero extra hardware.</h3>
+                    <p class="text-white/45 leading-relaxed text-[14px] max-w-md">No USB dongle. No $250 StreamDeck. Just the phone already charging on your desk.</p>
+                </div>
+            </div>
+
+            <!-- Creator -->
+            <div class="fade-up fade-up-delay-2 rounded-3xl border border-white/[0.05] bg-black p-8 flex flex-col gap-6">
+                <div class="h-20 flex items-center">
+                    <div class="flex flex-col gap-2">
+                        <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg border" style="border-color:#a78bfa;background:#a78bfa14">
+                            <div class="w-2 h-2 rounded-full" style="background:#a78bfa"></div>
+                            <span class="text-[11px]" style="color:#a78bfa">OBS Studio</span>
+                            <span class="ml-auto text-[10px] text-[#a78bfa]/60">● LIVE</span>
+                        </div>
+                        <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg border" style="border-color:rgba(255,255,255,0.06);background:rgba(255,255,255,0.02)">
+                            <div class="w-2 h-2 rounded-full" style="background:rgba(255,255,255,0.2)"></div>
+                            <span class="text-[11px]" style="color:rgba(255,255,255,0.3)">Browser</span>
+                        </div>
+                        <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg border" style="border-color:rgba(255,255,255,0.06);background:rgba(255,255,255,0.02)">
+                            <div class="w-2 h-2 rounded-full" style="background:rgba(255,255,255,0.2)"></div>
+                            <span class="text-[11px]" style="color:rgba(255,255,255,0.3)">Chat</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.16em] mb-3" style="color:#c084fc">For the creator</p>
+                    <h3 class="text-[22px] sm:text-[26px] font-bold tracking-tight leading-tight mb-3">Go live.<br/>Stay in control.</h3>
+                    <p class="text-white/45 leading-relaxed text-[14px] max-w-md">Switch between OBS, your browser, and your chat in one tap. No mouse. No interruptions. Just you and your audience.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════ HOW IT WORKS ═══════════════════════════════════ -->
+<section id="how-it-works" class="bg-[#080808] py-36 px-6 border-t border-white/[0.04]">
+    <div class="max-w-5xl mx-auto">
+        <div class="text-center mb-20">
+            <p class="fade-up text-[11px] font-semibold uppercase tracking-[0.18em] text-[#0078d4] mb-4">How it works</p>
+            <h2 class="fade-up fade-up-delay-1 text-[40px] sm:text-[56px] font-light tracking-[-0.03em] leading-[1.06]">Set up in under a minute.</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/[0.04] rounded-3xl overflow-hidden border border-white/[0.04]">
+            <!-- Step 1 -->
+            <div class="fade-up fade-up-delay-1 bg-[#080808] p-8 flex flex-col gap-6">
+                <div class="flex items-center gap-3">
+                    <div class="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-xl p-3 min-h-[80px] flex items-center">
+                        <div class="flex flex-col gap-1.5 w-full">
+                            <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[#3b82f6]/10 border border-[#3b82f6]/20">
+                                <div class="w-8 h-8 rounded-xl bg-[#3b82f6]/20 flex items-center justify-center shrink-0"><div class="w-4 h-4 rounded-md bg-[#3b82f6]/60"></div></div>
+                                <div class="flex flex-col gap-1 flex-1"><div class="h-1.5 w-16 bg-white/30 rounded-full"></div><div class="h-1 w-10 bg-white/15 rounded-full"></div></div>
+                                <div class="px-2.5 py-1 rounded-lg bg-[#3b82f6] text-[9px] font-semibold text-white shrink-0">GET</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <span class="text-[11px] font-bold tracking-widest mb-3 block" style="color:#3b82f6">01</span>
+                    <h3 class="text-[18px] font-semibold tracking-tight mb-2 leading-snug">Get WinDeck</h3>
+                    <p class="text-[13px] text-white/45 leading-relaxed">Download the Windows app and the Android APK from this page. Takes 30 seconds.</p>
+                </div>
+            </div>
+            <!-- Step 2 -->
+            <div class="fade-up fade-up-delay-2 bg-[#080808] p-8 flex flex-col gap-6">
+                <div class="flex items-center gap-3">
+                    <div class="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-xl p-3 min-h-[80px] flex items-center">
+                        <div class="flex flex-col gap-2 w-full">
+                            <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#22c55e]/10 border border-[#22c55e]/20">
+                                <div class="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse shrink-0"></div>
+                                <span class="text-[10px] text-[#22c55e] font-medium">Phone connected</span>
+                            </div>
+                            <div class="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                                <span class="text-[18px] font-mono font-bold tracking-[0.3em] text-white/60">8 4 7 2 9 1</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <span class="text-[11px] font-bold tracking-widest mb-3 block" style="color:#22c55e">02</span>
+                    <h3 class="text-[18px] font-semibold tracking-tight mb-2 leading-snug">Enter the 6-digit code</h3>
+                    <p class="text-[13px] text-white/45 leading-relaxed">Same Wi-Fi network. Open both apps. Enter the code shown on your PC into your phone. Done.</p>
+                </div>
+            </div>
+            <!-- Step 3 -->
+            <div class="fade-up fade-up-delay-3 bg-[#080808] p-8 flex flex-col gap-6">
+                <div class="flex items-center gap-3">
+                    <div class="flex-1 bg-white/[0.03] border border-white/[0.06] rounded-xl p-3 min-h-[80px] flex items-center">
+                        <div class="grid grid-cols-4 gap-1 w-full">
+                            <div class="h-5 rounded-md" style="background:#8b5cf620;border:1px solid #8b5cf640"></div>
+                            <div class="h-5 rounded-md" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.04)"></div>
+                            <div class="h-5 rounded-md" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.04)"></div>
+                            <div class="h-5 rounded-md" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.04)"></div>
+                            <div class="h-5 rounded-md" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.04)"></div>
+                            <div class="h-5 rounded-md" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.04)"></div>
+                            <div class="h-5 rounded-md" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.04)"></div>
+                            <div class="h-5 rounded-md" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.04)"></div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <span class="text-[11px] font-bold tracking-widest mb-3 block" style="color:#8b5cf6">03</span>
+                    <h3 class="text-[18px] font-semibold tracking-tight mb-2 leading-snug">Control your PC</h3>
+                    <p class="text-[13px] text-white/45 leading-relaxed">Launch apps, switch pages, trigger shortcuts. All from the phone already sitting on your desk.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════ PRIVACY ═══════════════════════════════════ -->
+<section id="privacy" class="bg-black py-36 px-6 border-t border-white/[0.04] overflow-hidden">
+    <div class="max-w-4xl mx-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div>
+                <p class="fade-up text-[11px] font-semibold uppercase tracking-[0.18em] text-[#0078d4] mb-4">Privacy</p>
+                <h2 class="fade-up fade-up-delay-1 text-[40px] sm:text-[52px] font-light tracking-[-0.03em] leading-[1.06] mb-6">Nothing<br/><span class="text-white/25">leaves your home.</span></h2>
+                <p class="fade-up fade-up-delay-2 text-[17px] text-white/40 leading-relaxed mb-6">No servers. No accounts. No telemetry. WinDeck runs entirely on your local Wi-Fi — the same tech your devices already use.</p>
+                <p class="fade-up fade-up-delay-3 text-[15px] text-white/25 leading-relaxed">Your app list, your shortcuts, your usage patterns — none of it ever leaves your network.</p>
+            </div>
+            <div class="fade-up fade-up-delay-2">
+                <div class="relative flex flex-col gap-3">
+                    <div class="flex items-center gap-4">
+                        <div class="shrink-0 w-[18px] h-[18px] rounded-full border-2 z-10 bg-black" style="border-color:#0078d4;box-shadow:0 0 6px rgba(0,120,212,0.4)"></div>
+                        <div class="flex-1 flex flex-col gap-1 px-5 py-4 rounded-2xl border border-[#0078d4]/20 bg-[#0078d4]/[0.06]">
+                            <span class="text-[13px] font-semibold" style="color:#0078d4">Your Windows PC</span>
+                            <span class="text-[12px] text-white/25">Sends app list & launches</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="shrink-0 w-[18px] h-[18px] rounded-full border-2 z-10 bg-black" style="border-color:rgba(255,255,255,0.2)"></div>
+                        <div class="flex-1 flex flex-col gap-1 px-5 py-4 rounded-2xl border border-white/[0.06] bg-white/[0.02]">
+                            <span class="text-[13px] font-semibold" style="color:rgba(255,255,255,0.3)">Local Wi-Fi only</span>
+                            <span class="text-[12px] text-white/25">Socket.IO · encrypted · zero internet</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="shrink-0 w-[18px] h-[18px] rounded-full border-2 z-10 bg-black" style="border-color:#0078d4;box-shadow:0 0 6px rgba(0,120,212,0.4)"></div>
+                        <div class="flex-1 flex flex-col gap-1 px-5 py-4 rounded-2xl border border-[#0078d4]/20 bg-[#0078d4]/[0.06]">
+                            <span class="text-[13px] font-semibold" style="color:#0078d4">Your Android Phone</span>
+                            <span class="text-[12px] text-white/25">Receives tiles & sends taps</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-[11px] text-white/20 text-center mt-4">Packets never reach the internet. Ever.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════ SMALL PRINT ═══════════════════════════════════ -->
+<section class="bg-[#080808] border-t border-white/[0.04] py-16 px-6">
+    <div class="max-w-5xl mx-auto">
+        <h2 class="fade-up text-[28px] sm:text-[36px] font-bold tracking-[-0.03em] text-center mb-10">Small print. No surprises.</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-px bg-white/[0.04] rounded-2xl overflow-hidden border border-white/[0.04]">
+            <div class="fade-up bg-[#080808] px-8 py-8 flex flex-col items-center text-center gap-1.5">
+                <span class="text-[24px] font-bold tracking-tight text-white/90">Android 8+</span>
+                <span class="text-[12px] text-white/30">Any phone works</span>
+            </div>
+            <div class="fade-up bg-[#080808] px-8 py-8 flex flex-col items-center text-center gap-1.5">
+                <span class="text-[24px] font-bold tracking-tight text-white/90">Windows 10+</span>
+                <span class="text-[12px] text-white/30">64-bit required</span>
+            </div>
+            <div class="fade-up bg-[#080808] px-8 py-8 flex flex-col items-center text-center gap-1.5">
+                <span class="text-[24px] font-bold tracking-tight text-white/90">v1.1</span>
+                <span class="text-[12px] text-white/30">Versions must match</span>
+            </div>
+            <div class="fade-up bg-[#080808] px-8 py-8 flex flex-col items-center text-center gap-1.5">
+                <span class="text-[24px] font-bold tracking-tight text-white/90">Free</span>
+                <span class="text-[12px] text-white/30">No subscription, ever</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════ BUILT WITH ATTENTION ═══════════════════════════════════ -->
+<section class="relative bg-black py-32 px-6 border-t border-white/[0.04] overflow-hidden">
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full bg-[#0078d4] opacity-[0.04] blur-[140px] pointer-events-none"></div>
+    <div class="relative max-w-4xl mx-auto">
+        <div class="text-center mb-12">
+            <h2 class="fade-up text-[44px] sm:text-[64px] md:text-[80px] font-bold tracking-[-0.04em] leading-[1.04]">Built with <span class="text-[#0078d4]">attention,</span><br/><span class="text-white/60">not investors.</span></h2>
+            <p class="fade-up fade-up-delay-1 mt-6 text-[18px] sm:text-[22px] font-normal text-white/70 tracking-[-0.01em]">Built solo. Open source spirit.</p>
+            <p class="fade-up fade-up-delay-2 mt-3 text-[14px] text-white/45 leading-relaxed max-w-sm mx-auto">Pro features coming later — core stays free.</p>
+        </div>
+    </div>
+</section>
+
+</main>
+
+<!-- ═══════════════════════════════════ FOOTER ═══════════════════════════════════ -->
+<footer class="bg-black border-t border-white/[0.04] py-12 px-8">
+    <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+        <span class="text-[13px] font-semibold text-white/60">WinDeck</span>
+        <p class="text-[12px] text-white/20 text-center leading-relaxed">© 2026 · Made with attention, not investors.<br class="sm:hidden"/> Built for Windows.</p>
+        <div class="flex items-center gap-6">
+            <a href="#" class="text-[12px] text-white/25 hover:text-white/50 transition-colors">Contact</a>
+            <a href="#" class="text-[12px] text-white/25 hover:text-white/50 transition-colors">Privacy</a>
+        </div>
+    </div>
+</footer>
+
+<!-- ═══════════════════════════════════ SCRIPTS ═══════════════════════════════════ -->
+<script>
+// ── Intersection Observer for all animated elements ──
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+        }
+    });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+document.querySelectorAll('.fade-up, .scale-in, .slide-in, .price-strike').forEach(el => observer.observe(el));
+
+// ── Phone Screenshot Carousel ──
+const carouselImages = [
+    { src: '/images/phone-app.jpg', alt: 'WinDeck App Grid' },
+    { src: '/images/phone-app.jpg', alt: 'WinDeck Controls' },
+    { src: '/images/phone-app.jpg', alt: 'WinDeck Widget' },
+];
+
+const track = document.getElementById('carousel-track');
+const dotsContainer = document.getElementById('carousel-dots');
+let currentSlide = 0;
+
+// Build slides
+carouselImages.forEach((img, i) => {
+    // Create additional copy for infinite loop effect
+    const createSlide = (opacity, scale) => {
+        const slide = document.createElement('div');
+        slide.className = 'carousel-slide';
+        slide.style.opacity = opacity;
+        slide.style.transform = `scale(${scale})`;
+        slide.innerHTML = `
+            <div style="background:linear-gradient(160deg, #2a2a2c, #0a0a0a);border-radius:clamp(24px, 6vw, 46px);padding:clamp(8px, 2vw, 14px);box-shadow:0 2px 6px rgba(0,0,0,0.3), 0 60px 120px -20px rgba(0,0,0,0.7), 0 0 0 0.5px rgba(255,255,255,0.06)">
+                <div style="background:#000;border-radius:clamp(18px, 4.5vw, 33px);overflow:hidden">
+                    <img alt="${img.alt}" class="w-full h-auto block" src="${img.src}"/>
+                </div>
+            </div>
+        `;
+        return slide;
+    };
+    
+    const slide = createSlide(i === 0 ? '1' : '0.3', i === 0 ? '1' : '0.97');
+    track.appendChild(slide);
+});
+
+// Build dots
+carouselImages.forEach((_, i) => {
+    const dot = document.createElement('button');
+    dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
+    dot.className = 'transition-all duration-300';
+    dot.style.cssText = `width:${i===0?20:6}px;height:6px;border-radius:3px;background:${i===0?'#0078d4':'rgba(255,255,255,0.2)'};border:none;cursor:pointer;padding:0`;
+    dot.onclick = () => goToSlide(i);
+    dotsContainer.appendChild(dot);
+});
+
+function goToSlide(index) {
+    currentSlide = index;
+    const offset = -(index * 310) + 16;
+    track.style.transform = `translateX(${offset}px)`;
+    
+    // Update slide styles
+    track.querySelectorAll('.carousel-slide').forEach((slide, i) => {
+        slide.style.opacity = i === index ? '1' : '0.3';
+        slide.style.transform = i === index ? 'scale(1)' : 'scale(0.97)';
+    });
+    
+    // Update dots
+    dotsContainer.querySelectorAll('button').forEach((dot, i) => {
+        dot.style.width = i === index ? '20px' : '6px';
+        dot.style.background = i === index ? '#0078d4' : 'rgba(255,255,255,0.2)';
+    });
+}
+
+// Auto-rotate carousel
+setInterval(() => {
+    goToSlide((currentSlide + 1) % carouselImages.length);
+}, 4000);
+</script>
+
+</body>
+</html>
