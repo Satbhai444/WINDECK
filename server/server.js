@@ -77,6 +77,32 @@ let bonjourService = null;
 
 // TODO (Future): Consider Bluetooth (RFCOMM/BLE) as a possible future no-WiFi fallback.
 
+function getBroadcastAddresses() {
+    const addresses = [];
+    const interfaces = os.networkInterfaces();
+    for (const name of Object.keys(interfaces)) {
+        for (const iface of interfaces[name]) {
+            if (iface.family === 'IPv4' && !iface.internal) {
+                const ipParts = iface.address.split('.');
+                const maskParts = iface.netmask.split('.');
+                const broadcastParts = [];
+                for(let i=0; i<4; i++) {
+                    broadcastParts.push((parseInt(ipParts[i]) | (~parseInt(maskParts[i]) & 255)));
+                }
+                addresses.push(broadcastParts.join('.'));
+                
+                // Hotspot fallback: Directly target the phone's likely gateway IPs
+                // in case the Android hotspot blocks subnet broadcasts.
+                addresses.push(`${ipParts[0]}.${ipParts[1]}.${ipParts[2]}.1`);
+                addresses.push(`${ipParts[0]}.${ipParts[1]}.${ipParts[2]}.254`);
+                addresses.push(`${ipParts[0]}.${ipParts[1]}.${ipParts[2]}.43`); // Common Android hotspot IP
+            }
+        }
+    }
+    addresses.push('255.255.255.255'); // Standard global broadcast
+    return [...new Set(addresses)];
+}
+
 function startBroadcasting(roomName) {
     if (udpBroadcastInterval) clearInterval(udpBroadcastInterval);
     currentRoomName = roomName;
@@ -96,7 +122,15 @@ function startBroadcasting(roomName) {
             port: PORT,
             type: 'windeck-server'
         }));
-        udpSocket.send(message, 0, message.length, BROADCAST_PORT, '255.255.255.255');
+        
+        const targetIps = getBroadcastAddresses();
+        targetIps.forEach(ip => {
+            try {
+                udpSocket.send(message, 0, message.length, BROADCAST_PORT, ip);
+            } catch (err) {
+                // Ignore send errors for specific IPs
+            }
+        });
     }, 2000);
 }
 
