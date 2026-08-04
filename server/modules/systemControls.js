@@ -128,9 +128,15 @@ function executeMacro(macroScript) {
 }
 
 function launchApp(exePath) {
-    exec(`"${exePath}"`, (err) => {
-        if (err) console.error('Launch app error:', err);
-    });
+    if (exePath.includes(':\\') || exePath.toLowerCase().endsWith('.exe')) {
+        exec(`"${exePath}"`, (err) => {
+            if (err) console.error('Launch app error:', err);
+        });
+    } else {
+        exec(`explorer.exe shell:AppsFolder\\${exePath}`, (err) => {
+            if (err) console.error('Launch AppID error:', err);
+        });
+    }
 }
 
 function openUrl(url) {

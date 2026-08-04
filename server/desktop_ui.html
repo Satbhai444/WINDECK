@@ -1,122 +1,213 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WinDeck Dashboard</title>
-    <script src="./tailwind.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./public/output.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@700&display=swap"
+        rel="stylesheet">
     <style>
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #050507; /* Darker modern background */
-            color: #f5f5f7; 
-            overflow: hidden; 
-            -webkit-app-region: drag; 
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #050507;
+            /* Darker modern background */
+            color: #f5f5f7;
+            overflow: hidden;
+            -webkit-app-region: drag;
         }
-        .no-drag { -webkit-app-region: no-drag; }
-        .mono { font-family: 'JetBrains Mono', monospace; }
-        
-        /* Modern Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
 
-        .pulse-dot { animation: pulse 2s infinite; }
-        @keyframes pulse {
-            0% { opacity: 1; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
-            70% { opacity: 0.5; box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
-            100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        .no-drag {
+            -webkit-app-region: no-drag;
         }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Modern Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+            }
+
+            70% {
+                opacity: 0.5;
+                box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+            }
+
+            100% {
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+            }
+        }
+
         .glass-panel {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
         }
-        
-        .view-section { display: none; }
-        .view-section.active { display: flex; }
+
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: flex;
+        }
     </style>
 </head>
+
 <body class="bg-[#0c0c0e] text-white h-screen flex flex-col font-sans overflow-hidden select-none">
-    
+
     <!-- Update Banner -->
-    <div id="update-banner" class="hidden w-full bg-[#0078d4]/20 border-b border-[#0078d4]/30 py-2 px-4 flex items-center justify-between no-drag">
+    <div id="update-banner"
+        class="hidden w-full bg-[#0078d4]/20 border-b border-[#0078d4]/30 py-2 px-4 flex items-center justify-between no-drag">
         <div class="flex items-center gap-2">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
             <span id="update-text" class="text-xs font-semibold text-[#0078d4]">A new update is downloading...</span>
         </div>
-        <button id="update-btn" onclick="installUpdate()" class="hidden bg-[#0078d4] hover:bg-blue-500 text-white text-[10px] px-3 py-1 rounded font-bold shadow transition-all">Restart to Update</button>
+        <button id="update-btn" onclick="installUpdate()"
+            class="hidden bg-[#0078d4] hover:bg-blue-500 text-white text-[10px] px-3 py-1 rounded font-bold shadow transition-all">Restart
+            to Update</button>
     </div>
 
     <!-- Top Window Controls (Drag Area) -->
     <div class="h-12 w-full flex justify-between items-center px-4 border-b border-white/5 bg-white/[0.01]">
         <div class="flex items-center gap-2 pl-2">
-            <div class="w-5 h-5 rounded bg-gradient-to-br from-[#0078d4] to-blue-600 flex items-center justify-center shadow-lg">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+            <div
+                class="w-5 h-5 rounded bg-gradient-to-br from-[#0078d4] to-blue-600 flex items-center justify-center shadow-lg">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
             </div>
             <span class="text-sm font-bold tracking-tight">win<span class="text-[#0078d4]">deck</span></span>
-            <span class="text-[9px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white/40 ml-1">v1.1.0</span>
+            <span
+                class="text-[9px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white/40 ml-1">v1.2.0</span>
         </div>
         <div class="flex items-center gap-1">
-            <button onclick="minimizeApp()" class="no-drag text-white/40 hover:text-white hover:bg-white/10 p-2 rounded transition-all">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <button onclick="minimizeApp()"
+                class="no-drag text-white/40 hover:text-white hover:bg-white/10 p-2 rounded transition-all">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
             </button>
-            <button onclick="maximizeApp()" class="no-drag text-white/40 hover:text-white hover:bg-white/10 p-2 rounded transition-all">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+            <button onclick="maximizeApp()"
+                class="no-drag text-white/40 hover:text-white hover:bg-white/10 p-2 rounded transition-all">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                </svg>
             </button>
-            <button onclick="closeApp()" class="no-drag text-white/40 hover:text-red-400 hover:bg-red-400/10 p-2 rounded transition-all">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <button onclick="closeApp()"
+                class="no-drag text-white/40 hover:text-red-400 hover:bg-red-400/10 p-2 rounded transition-all">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
             </button>
         </div>
     </div>
 
     <div class="flex-1 flex overflow-hidden">
         <!-- Sidebar Navigation -->
-        <div class="w-16 sm:w-48 border-r border-white/5 bg-white/[0.01] flex flex-col py-6 items-center sm:items-start no-drag">
+        <div
+            class="w-16 sm:w-48 border-r border-white/5 bg-white/[0.01] flex flex-col py-6 items-center sm:items-start no-drag">
             <div class="flex flex-col w-full px-2 gap-2">
-                <button onclick="showView('view-dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center justify-center sm:justify-start gap-3 p-3 rounded-xl bg-[#0078d4]/10 text-[#0078d4] font-medium transition-all">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                <button onclick="showView('view-dashboard')" id="nav-dashboard"
+                    class="nav-btn w-full flex items-center justify-center sm:justify-start gap-3 p-3 rounded-xl bg-[#0078d4]/10 text-[#0078d4] font-medium transition-all">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
                     <span class="hidden sm:block text-sm">Dashboard</span>
                 </button>
-                <button onclick="showView('view-editor')" id="nav-editor" class="nav-btn w-full flex items-center justify-center sm:justify-start gap-3 p-3 rounded-xl text-white/40 hover:text-white hover:bg-white/5 font-medium transition-all">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                <button onclick="showView('view-editor')" id="nav-editor"
+                    class="nav-btn w-full flex items-center justify-center sm:justify-start gap-3 p-3 rounded-xl text-white/40 hover:text-white hover:bg-white/5 font-medium transition-all">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 20h9"></path>
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                    </svg>
                     <span class="hidden sm:block text-sm">Editor</span>
                 </button>
-                <button onclick="showSettings()" id="nav-settings" class="nav-btn w-full flex items-center justify-center sm:justify-start gap-3 p-3 rounded-xl text-white/40 hover:text-white hover:bg-white/5 font-medium transition-all">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                <button onclick="showSettings()" id="nav-settings"
+                    class="nav-btn w-full flex items-center justify-center sm:justify-start gap-3 p-3 rounded-xl text-white/40 hover:text-white hover:bg-white/5 font-medium transition-all">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                        </path>
+                    </svg>
                     <span class="hidden sm:block text-sm">Settings</span>
                 </button>
             </div>
-            
+
             <!-- Version Info -->
             <div class="mt-auto mb-4 px-2 w-full">
                 <div class="text-center sm:text-left sm:pl-3">
                     <span class="text-[10px] text-white/30 font-bold uppercase tracking-widest block">Version</span>
-                    <span class="text-[11px] text-white/50 font-medium">v1.1.0</span>
+                    <span class="text-[11px] text-white/50 font-medium">v1.2.0</span>
                 </div>
             </div>
         </div>
 
         <!-- Main Content Area -->
         <div class="flex-1 overflow-y-auto no-drag p-6 sm:p-10">
-            
+
             <!-- Room Creation View -->
             <div id="view-create-room" class="view-section h-full flex-col items-center justify-center">
                 <div class="glass-panel p-10 rounded-3xl max-w-sm w-full flex flex-col items-center text-center ">
                     <div class="w-16 h-16 rounded-full bg-[#0078d4]/10 flex items-center justify-center mb-6">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="2">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                        </svg>
                     </div>
                     <h2 class="text-2xl font-bold text-white mb-2">Create Room</h2>
                     <p class="text-sm text-white/50 mb-8">Initialize the server to allow your phone to connect.</p>
-                    
+
                     <div class="w-full text-left mb-4">
-                        <label class="text-[10px] font-bold text-white/40 uppercase tracking-widest pl-1">Room Name</label>
-                        <input type="text" id="room-name-input" class="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#0078d4] transition-colors" placeholder="e.g. Studio PC">
+                        <label class="text-[10px] font-bold text-white/40 uppercase tracking-widest pl-1">Room
+                            Name</label>
+                        <input type="text" id="room-name-input"
+                            class="w-full mt-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#0078d4] transition-colors"
+                            placeholder="e.g. Studio PC">
                     </div>
-                    
-                    <button onclick="createRoom()" class="w-full bg-[#0078d4] text-white px-4 py-3.5 rounded-xl text-sm font-semibold hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(0,120,212,0.3)]">
+
+                    <button onclick="createRoom()"
+                        class="w-full bg-[#0078d4] text-white px-4 py-3.5 rounded-xl text-sm font-semibold hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(0,120,212,0.3)]">
                         Start Server
                     </button>
                 </div>
@@ -125,28 +216,34 @@
             <!-- Dashboard View -->
             <div id="view-dashboard" class="view-section flex-col gap-6">
                 <h1 class="text-2xl font-bold text-white mb-2">Dashboard</h1>
-                
+
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full max-w-5xl">
-                    
+
                     <!-- Connection Card -->
-                    <div class="glass-panel rounded-3xl p-6 flex flex-col  border-[#0078d4]/20 bg-gradient-to-b from-[#0078d4]/5 to-transparent">
+                    <div
+                        class="glass-panel rounded-3xl p-6 flex flex-col  border-[#0078d4]/20 bg-gradient-to-b from-[#0078d4]/5 to-transparent">
                         <div class="flex justify-between items-center mb-6">
                             <h3 class="text-xs font-bold uppercase tracking-wider text-[#0078d4]">Pairing Info</h3>
-                            <div class="flex items-center gap-2 text-[10px] font-bold bg-[#0078d4]/10 text-[#0078d4] px-2 py-1 rounded-full border border-[#0078d4]/20">
+                            <div
+                                class="flex items-center gap-2 text-[10px] font-bold bg-[#0078d4]/10 text-[#0078d4] px-2 py-1 rounded-full border border-[#0078d4]/20">
                                 <span class="pulse-dot w-1.5 h-1.5 rounded-full bg-green-500"></span>
                                 SERVER ONLINE
                             </div>
                         </div>
 
                         <div class="flex flex-col items-center justify-center py-6 mb-2">
-                            <span class="text-[10px] uppercase tracking-widest text-white/40 font-bold block mb-2">Pairing Code</span>
+                            <span
+                                class="text-[10px] uppercase tracking-widest text-white/40 font-bold block mb-2">Pairing
+                                Code</span>
                             <div class="relative">
                                 <div class="absolute inset-0 bg-[#0078d4] opacity-20 blur-2xl rounded-full"></div>
-                                <span id="otp-display" class="relative z-10 text-5xl font-bold tracking-[0.2em] mono text-white leading-none pl-[0.2em] drop-shadow-[0_0_15px_rgba(0,120,212,0.5)]">------</span>
+                                <span id="otp-display"
+                                    class="relative z-10 text-5xl font-bold tracking-[0.2em] mono text-white leading-none pl-[0.2em] drop-shadow-[0_0_15px_rgba(0,120,212,0.5)]">------</span>
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between bg-white/5 border border-white/5 rounded-xl p-3 mb-6">
+                        <div
+                            class="flex items-center justify-between bg-white/5 border border-white/5 rounded-xl p-3 mb-6">
                             <span class="text-xs text-white/50">Manual Room ID</span>
                             <span id="encoded-room-id" class="text-sm font-bold mono text-white">---</span>
                         </div>
@@ -154,13 +251,16 @@
                         <div class="mt-auto border-t border-white/5 pt-4">
                             <div class="flex items-center justify-between mb-4">
                                 <span class="text-xs text-white/40 uppercase tracking-widest font-bold">Status</span>
-                                <span id="connection-info" class="text-sm font-medium text-white/70">Waiting for device...</span>
+                                <span id="connection-info" class="text-sm font-medium text-white/70">Waiting for
+                                    device...</span>
                             </div>
                             <div class="flex gap-2">
-                                <button id="btn-disconnect" onclick="disconnectDevice()" class="hidden flex-1 items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-semibold transition-all border border-red-500/30 bg-red-500/10 text-red-500 hover:bg-red-500/20">
+                                <button id="btn-disconnect" onclick="disconnectDevice()"
+                                    class="hidden flex-1 items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-semibold transition-all border border-red-500/30 bg-red-500/10 text-red-500 hover:bg-red-500/20">
                                     Disconnect Device
                                 </button>
-                                <button id="btn-cancel-room" onclick="cancelRoom()" class="flex-1 items-center justify-center py-2.5 rounded-lg text-xs font-semibold transition-all border border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white">
+                                <button id="btn-cancel-room" onclick="cancelRoom()"
+                                    class="flex-1 items-center justify-center py-2.5 rounded-lg text-xs font-semibold transition-all border border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white">
                                     Stop Server
                                 </button>
                             </div>
@@ -169,44 +269,76 @@
 
                     <!-- Telemetry & System Info -->
                     <div class="flex flex-col gap-6">
-                        
+
                         <!-- PC to Phone DropZone -->
-                        <div class="glass-panel rounded-3xl p-5 flex flex-col items-center justify-center border border-white/5 border-dashed bg-white/[0.02] hover:bg-white/[0.05] transition-colors relative cursor-pointer" onclick="document.getElementById('pc-file-input').click()">
+                        <div class="glass-panel rounded-3xl p-5 flex flex-col items-center justify-center border border-white/5 border-dashed bg-white/[0.02] hover:bg-white/[0.05] transition-colors relative cursor-pointer"
+                            onclick="document.getElementById('pc-file-input').click()">
                             <input type="file" id="pc-file-input" class="hidden" onchange="handlePcFileSelect(event)">
-                            <div class="w-12 h-12 rounded-full bg-[#0078d4]/10 text-[#0078d4] flex items-center justify-center mb-3">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            <div
+                                class="w-12 h-12 rounded-full bg-[#0078d4]/10 text-[#0078d4] flex items-center justify-center mb-3">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
                             </div>
                             <h3 class="text-sm font-bold text-white mb-1">Send to Phone</h3>
-                            <p class="text-[10px] text-white/40 uppercase tracking-widest text-center">Click or drop file here</p>
+                            <p class="text-[10px] text-white/40 uppercase tracking-widest text-center">Click or drop
+                                file here</p>
                         </div>
-                        
+
                         <!-- Device Info -->
                         <div class="glass-panel rounded-3xl p-6 flex-1 flex flex-col">
-                            <h3 class="text-xs font-bold uppercase tracking-wider text-white/60 mb-6">Connected Device</h3>
-                            
-                            <div id="device-none" class="flex-1 flex flex-col items-center justify-center text-center opacity-70">
-                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mb-3 text-white/40"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-white/60 mb-6">Connected Device
+                            </h3>
+
+                            <div id="device-none"
+                                class="flex-1 flex flex-col items-center justify-center text-center opacity-70">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.5" class="mb-3 text-white/40">
+                                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                                    <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                                </svg>
                                 <p class="text-sm text-white">No device connected</p>
                                 <p class="text-xs text-white/50 mt-1">Waiting for pairing...</p>
-                                <div class="mt-4 p-3 bg-[#0078d4]/10 border border-[#0078d4]/20 rounded-xl text-left max-w-[200px]">
+                                <div
+                                    class="mt-4 p-3 bg-[#0078d4]/10 border border-[#0078d4]/20 rounded-xl text-left max-w-[200px]">
                                     <p class="text-[10px] font-bold text-white mb-1">Don't have the Phone app?</p>
-                                    <p class="text-[10px] text-white/60 mb-1.5">Download it from our official website to connect:</p>
-                                    <a href="#" onclick="require('electron').shell.openExternal('https://www.daarshannexaa.in'); return false;" class="text-[11px] font-semibold text-[#0078d4] hover:underline">daarshannexaa.in</a>
+                                    <p class="text-[10px] text-white/60 mb-1.5">Download it from our official website to
+                                        connect:</p>
+                                    <a href="#"
+                                        onclick="window.electronAPI.openExternal('https://www.daarshannexaa.in'); return false;"
+                                        class="text-[11px] font-semibold text-[#0078d4] hover:underline">daarshannexaa.in</a>
                                 </div>
                             </div>
 
                             <div id="device-active" class="hidden flex-1 flex-col">
                                 <div class="flex items-center gap-4 mb-6">
-                                    <div class="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center border border-green-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                                    <div
+                                        class="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center border border-green-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981"
+                                            stroke-width="2">
+                                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                                            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                                        </svg>
                                     </div>
                                     <div>
                                         <div class="flex items-center gap-2">
-        <div class="text-lg font-bold text-white" id="dev-name">Android Phone</div>
-        <button onclick="renameDevice()" class="text-white/40 hover:text-white transition-colors" title="Rename Device">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-        </button>
-    </div>
+                                            <div class="text-lg font-bold text-white" id="dev-name">Android Phone</div>
+                                            <button onclick="renameDevice()"
+                                                class="text-white/40 hover:text-white transition-colors"
+                                                title="Rename Device">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2">
+                                                    <path
+                                                        d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7">
+                                                    </path>
+                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z">
+                                                    </path>
+                                                </svg>
+                                            </button>
+                                        </div>
                                         <div class="text-xs text-green-400 font-medium flex items-center gap-1.5">
                                             <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span> Active Session
                                         </div>
@@ -233,9 +365,11 @@
             <div id="view-editor" class="view-section flex-col gap-4 max-w-5xl h-[calc(100vh-80px)]">
                 <div class="flex items-center justify-between shrink-0">
                     <h1 class="text-2xl font-bold text-white mb-2">Layout Editor</h1>
-                    <button onclick="saveLayout()" class="bg-[#0078d4] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-500 transition-all">Save & Sync</button>
+                    <button onclick="saveLayout()"
+                        class="bg-[#0078d4] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-500 transition-all">Save
+                        & Sync</button>
                 </div>
-                
+
                 <div class="flex gap-6 h-full min-h-0 pb-4">
                     <!-- Phone Preview Column -->
                     <div class="w-[300px] shrink-0 flex flex-col gap-4">
@@ -243,91 +377,160 @@
                             <div class="flex items-center justify-between w-full mb-4">
                                 <button onclick="prevPage()" class="p-1 text-white/50 hover:text-white">&larr;</button>
                                 <div class="flex gap-2 items-center">
-                                    <input type="text" id="page-name-input" onchange="updatePageName()" class="bg-transparent text-center text-sm font-bold text-white border-b border-white/20 focus:outline-none focus:border-[#0078d4] w-24">
-                                    <button onclick="deleteCurrentPage()" class="text-red-400 hover:text-red-300 text-xs px-2" title="Delete Page">🗑</button>
+                                    <input type="text" id="page-name-input" onchange="updatePageName()"
+                                        class="bg-transparent text-center text-sm font-bold text-white border-b border-white/20 focus:outline-none focus:border-[#0078d4] w-24">
+                                    <button onclick="deleteCurrentPage()"
+                                        class="text-red-400 hover:text-red-300 text-xs px-2"
+                                        title="Delete Page">🗑</button>
                                 </div>
                                 <button onclick="nextPage()" class="p-1 text-white/50 hover:text-white">&rarr;</button>
                             </div>
                             <!-- Realistic Android Mock Phone Frame -->
                             <div class="relative mx-auto mt-2">
                                 <!-- Side buttons (Volume & Power) -->
-                                <div onclick="triggerMockVolume(true)" title="Volume Up" class="absolute -left-1.5 top-24 w-1.5 h-12 bg-[#1e1e24] rounded-l-md border-y border-l border-white/5 shadow-sm cursor-pointer hover:bg-[#3f3f46] transition-colors z-30"></div>
-                                <div onclick="triggerMockVolume(false)" title="Volume Down" class="absolute -left-1.5 top-40 w-1.5 h-12 bg-[#1e1e24] rounded-l-md border-y border-l border-white/5 shadow-sm cursor-pointer hover:bg-[#3f3f46] transition-colors z-30"></div>
-                                <div onclick="toggleMockPhoneScreen()" title="Power / Lock" class="absolute -right-1.5 top-32 w-1.5 h-16 bg-[#1e1e24] rounded-r-md border-y border-r border-white/5 shadow-sm cursor-pointer hover:bg-[#3f3f46] transition-colors z-30"></div>
-                                
+                                <div onclick="triggerMockVolume(true)" title="Volume Up"
+                                    class="absolute -left-1.5 top-24 w-1.5 h-12 bg-[#1e1e24] rounded-l-md border-y border-l border-white/5 shadow-sm cursor-pointer hover:bg-[#3f3f46] transition-colors z-30">
+                                </div>
+                                <div onclick="triggerMockVolume(false)" title="Volume Down"
+                                    class="absolute -left-1.5 top-40 w-1.5 h-12 bg-[#1e1e24] rounded-l-md border-y border-l border-white/5 shadow-sm cursor-pointer hover:bg-[#3f3f46] transition-colors z-30">
+                                </div>
+                                <div onclick="toggleMockPhoneScreen()" title="Power / Lock"
+                                    class="absolute -right-1.5 top-32 w-1.5 h-16 bg-[#1e1e24] rounded-r-md border-y border-r border-white/5 shadow-sm cursor-pointer hover:bg-[#3f3f46] transition-colors z-30">
+                                </div>
+
                                 <!-- Main Phone Body -->
-                                <div class="w-[260px] h-[540px] rounded-[2.5rem] border-[8px] border-[#1e1e24] bg-black p-1 shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_0_0_1px_rgba(255,255,255,0.1)] relative shrink-0">
+                                <div
+                                    class="w-[260px] h-[540px] rounded-[2.5rem] border-[8px] border-[#1e1e24] bg-black p-1 shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_0_0_1px_rgba(255,255,255,0.1)] relative shrink-0">
                                     <!-- Inner screen -->
-                                    <div class="w-full h-full rounded-[2rem] bg-[#0c0c0e] relative overflow-hidden border border-white/5">
-                                        
+                                    <div
+                                        class="w-full h-full rounded-[2rem] bg-[#0c0c0e] relative overflow-hidden border border-white/5">
+
                                         <!-- Top Status Bar Area -->
-                                        <div class="absolute top-0 inset-x-0 h-7 flex items-center justify-between px-4 z-20">
+                                        <div
+                                            class="absolute top-0 inset-x-0 h-7 flex items-center justify-between px-4 z-20">
                                             <!-- Time -->
                                             <span class="text-[9px] font-medium text-white/90 mock-time">12:00</span>
                                             <!-- Icons -->
                                             <div class="flex items-center gap-1 opacity-90">
-                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M5 12.55a11 11 0 0114.08 0"></path><path d="M1.42 9a16 16 0 0121.16 0"></path><path d="M8.53 16.11a6 6 0 016.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
+                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                                                    stroke="white" stroke-width="2.5">
+                                                    <path d="M5 12.55a11 11 0 0114.08 0"></path>
+                                                    <path d="M1.42 9a16 16 0 0121.16 0"></path>
+                                                    <path d="M8.53 16.11a6 6 0 016.95 0"></path>
+                                                    <line x1="12" y1="20" x2="12.01" y2="20"></line>
+                                                </svg>
                                                 <span id="mock-battery-icon">
-                                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M20 18V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2z"></path></svg>
+                                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
+                                                        <path
+                                                            d="M20 18V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2z">
+                                                        </path>
+                                                    </svg>
                                                 </span>
                                             </div>
                                         </div>
 
                                         <!-- Camera Punch Hole -->
-                                        <div class="absolute top-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-black border border-white/5 shadow-inner z-20 flex items-center justify-center">
-                                            <div class="w-1.5 h-1.5 rounded-full bg-[#001030] shadow-[0_0_2px_#0078d4]"></div>
+                                        <div
+                                            class="absolute top-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-black border border-white/5 shadow-inner z-20 flex items-center justify-center">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-[#001030] shadow-[0_0_2px_#0078d4]">
+                                            </div>
                                         </div>
-                                        
+
                                         <!-- Grid -->
-                                        <div id="phone-grid" class="absolute inset-x-4 top-10 bottom-8 grid grid-cols-2 gap-4 auto-rows-max overflow-y-auto" style="scrollbar-width: none; -ms-overflow-style: none;">
-                                            <style>#phone-grid::-webkit-scrollbar { display: none; }</style>
+                                        <div id="phone-grid"
+                                            class="absolute inset-x-4 top-10 bottom-8 grid grid-cols-2 gap-4 auto-rows-max overflow-y-auto"
+                                            style="scrollbar-width: none; -ms-overflow-style: none;">
+                                            <style>
+                                                #phone-grid::-webkit-scrollbar {
+                                                    display: none;
+                                                }
+                                            </style>
                                             <!-- Slots injected by JS -->
                                         </div>
-                                        
+
                                         <!-- Bottom Navigation Pill -->
-                                        <div class="absolute bottom-2 left-1/2 -translate-x-1/2 w-20 h-1 bg-white/20 rounded-full z-20"></div>
+                                        <div
+                                            class="absolute bottom-2 left-1/2 -translate-x-1/2 w-20 h-1 bg-white/20 rounded-full z-20">
+                                        </div>
 
                                         <!-- Mock Screen Overlay -->
-                                        <div id="mock-screen-overlay" class="absolute inset-0 bg-black z-40 transition-opacity duration-300 pointer-events-none opacity-0 flex flex-col items-center justify-center cursor-pointer" onclick="toggleMockPhoneScreen()">
-                                            <div class="text-white/60 text-5xl font-bold font-mono mb-2" id="mock-screen-time">12:00</div>
-                                            <div class="text-white/30 text-[10px] tracking-widest uppercase mt-4">Tap to unlock</div>
+                                        <div id="mock-screen-overlay"
+                                            class="absolute inset-0 bg-black z-40 transition-opacity duration-300 pointer-events-none opacity-0 flex flex-col items-center justify-center cursor-pointer"
+                                            onclick="toggleMockPhoneScreen()">
+                                            <div class="text-white/60 text-5xl font-bold font-mono mb-2"
+                                                id="mock-screen-time">12:00</div>
+                                            <div class="text-white/30 text-[10px] tracking-widest uppercase mt-4">Tap to
+                                                unlock</div>
                                         </div>
 
                                         <!-- Mock Volume Slider -->
-                                        <div id="mock-volume-slider" class="absolute left-2 top-24 w-1.5 h-24 bg-white/10 backdrop-blur-md rounded-full z-50 transition-all duration-300 opacity-0 -translate-x-4 overflow-hidden border border-white/10 shadow-lg pointer-events-none">
-                                            <div id="mock-volume-fill" class="absolute bottom-0 w-full h-[50%] bg-white rounded-full transition-all duration-300"></div>
+                                        <div id="mock-volume-slider"
+                                            class="absolute left-2 top-24 w-1.5 h-24 bg-white/10 backdrop-blur-md rounded-full z-50 transition-all duration-300 opacity-0 -translate-x-4 overflow-hidden border border-white/10 shadow-lg pointer-events-none">
+                                            <div id="mock-volume-fill"
+                                                class="absolute bottom-0 w-full h-[50%] bg-white rounded-full transition-all duration-300">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <button onclick="addNewPage()" class="mt-4 text-xs font-semibold text-[#0078d4] hover:text-blue-400">+ New Page</button>
+                            <button onclick="addNewPage()"
+                                class="mt-4 text-xs font-semibold text-[#0078d4] hover:text-blue-400">+ New
+                                Page</button>
                         </div>
                     </div>
 
                     <!-- Asset Library Column -->
                     <div class="flex-1 flex flex-col glass-panel rounded-3xl p-6 overflow-hidden h-full shadow-lg">
                         <div class="flex items-center gap-4 border-b border-white/5 pb-4 mb-4 shrink-0">
-                            <button onclick="setAssetTab('apps')" id="tab-apps" class="asset-tab text-sm font-semibold text-[#0078d4] border-b-2 border-[#0078d4] pb-1">PC Apps</button>
-                            <button onclick="setAssetTab('system')" id="tab-system" class="asset-tab text-sm font-semibold text-white/40 border-b-2 border-transparent pb-1 hover:text-white">System Controls</button>
-                            <button onclick="setAssetTab('web')" id="tab-web" class="asset-tab text-sm font-semibold text-white/40 border-b-2 border-transparent pb-1 hover:text-white">Websites</button>
+                            <button onclick="setAssetTab('apps')" id="tab-apps"
+                                class="asset-tab text-sm font-semibold text-[#0078d4] border-b-2 border-[#0078d4] pb-1">PC
+                                Apps</button>
+                            <button onclick="setAssetTab('system')" id="tab-system"
+                                class="asset-tab text-sm font-semibold text-white/40 border-b-2 border-transparent pb-1 hover:text-white">System
+                                Controls</button>
+                            <button onclick="setAssetTab('web')" id="tab-web"
+                                class="asset-tab text-sm font-semibold text-white/40 border-b-2 border-transparent pb-1 hover:text-white">Websites</button>
                         </div>
-                        
-                        <div id="asset-list-apps" class="asset-list flex-1 overflow-y-auto grid grid-cols-3 gap-3 auto-rows-max pr-2">
-                            <div class="col-span-3 text-center text-white/40 text-sm py-4" id="apps-loading">Loading apps...</div>
+
+                        <!-- Search Bar -->
+                        <div class="mb-4 shrink-0 relative flex items-center">
+                            <i data-lucide="search"
+                                class="absolute left-3 w-4 h-4 text-white/40 pointer-events-none"></i>
+                            <input type="text" id="asset-search" oninput="filterAssets()"
+                                placeholder="Search apps, controls, websites..."
+                                class="w-full bg-black/30 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#0078d4] transition-colors shadow-inner">
                         </div>
-                        
-                        <div id="asset-list-system" class="asset-list hidden flex-1 overflow-y-auto grid grid-cols-3 gap-3 auto-rows-max pr-2">
+
+                        <div id="asset-list-apps"
+                            class="asset-list flex-1 overflow-y-auto grid grid-cols-3 gap-3 auto-rows-max pr-2">
+                            <div class="col-span-3 text-center text-white/40 text-sm py-4" id="apps-loading">Loading
+                                apps...</div>
+                        </div>
+
+                        <div id="asset-list-system"
+                            class="asset-list hidden flex-1 overflow-y-auto grid grid-cols-3 gap-3 auto-rows-max pr-2">
                             <!-- Populated by JS -->
                         </div>
-                        
-                        <div id="asset-list-web" class="asset-list hidden flex-1 flex-col gap-4">
-                            <div class="bg-white/5 p-4 rounded-xl border border-white/10">
+
+                        <div id="asset-list-web" class="asset-list hidden flex-1 overflow-y-auto flex-col gap-4 pr-2">
+                            <div class="bg-white/5 p-4 rounded-xl border border-white/10 shrink-0">
                                 <h3 class="text-xs font-bold text-white mb-2">Create Website Tile</h3>
-                                <input type="text" id="web-title" placeholder="Title (e.g. YouTube)" class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white mb-2 focus:outline-none focus:border-[#0078d4]">
-                                <input type="text" id="web-url" placeholder="URL (e.g. https://youtube.com)" class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white mb-3 focus:outline-none focus:border-[#0078d4]">
-                                <div draggable="true" id="web-drag-tile" class="cursor-grab bg-[#0078d4]/20 border border-[#0078d4]/40 rounded-xl p-3 flex flex-col items-center justify-center text-center transition-all hover:bg-[#0078d4]/30" ondragstart="onDragStartWeb(event)">
+                                <input type="text" id="web-title" placeholder="Title (e.g. YouTube)"
+                                    class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white mb-2 focus:outline-none focus:border-[#0078d4]">
+                                <input type="text" id="web-url" placeholder="URL (e.g. https://youtube.com)"
+                                    class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white mb-3 focus:outline-none focus:border-[#0078d4]">
+                                <div draggable="true" id="web-drag-tile"
+                                    class="cursor-grab bg-[#0078d4]/20 border border-[#0078d4]/40 rounded-xl p-3 flex flex-col items-center justify-center text-center transition-all hover:bg-[#0078d4]/30"
+                                    ondragstart="onDragStartWeb(event)">
                                     <span class="text-2xl mb-1">🌐</span>
-                                    <span class="text-[10px] font-semibold text-white truncate w-full px-1">Drag me</span>
+                                    <span class="text-[10px] font-semibold text-white truncate w-full px-1">Drag
+                                        me</span>
+                                </div>
+                            </div>
+                            <div class="border-t border-white/5 pt-4">
+                                <h3 class="text-xs font-bold text-white mb-3">Popular Websites</h3>
+                                <div class="grid grid-cols-3 gap-3 auto-rows-max" id="preset-web-grid">
+                                    <!-- Populated by JS -->
                                 </div>
                             </div>
                         </div>
@@ -338,23 +541,29 @@
             <!-- Settings View -->
             <div id="view-settings" class="view-section flex-col gap-6 max-w-2xl">
                 <h1 class="text-2xl font-bold text-white mb-2">Settings</h1>
-                
+
                 <div class="glass-panel p-6 rounded-3xl border border-white/5">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-[#0078d4] mb-4">About WinDeck Server</h3>
                     <div class="flex items-center gap-4 mb-4">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0078d4] to-blue-600 flex items-center justify-center shadow-lg">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                        <div
+                            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0078d4] to-blue-600 flex items-center justify-center shadow-lg">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                <line x1="8" y1="21" x2="16" y2="21"></line>
+                                <line x1="12" y1="17" x2="12" y2="21"></line>
+                            </svg>
                         </div>
                         <div class="flex flex-col">
                             <span class="text-lg font-bold text-white">WinDeck (Desktop)</span>
-                            <span class="text-sm text-white/50">Version 1.1.0</span>
+                            <span class="text-sm text-white/50">v1.2.0</span>
                         </div>
                     </div>
                     <p class="text-sm text-white/60 leading-relaxed mb-6">
-                        WinDeck transforms your Android device into a highly customizable, zero-latency macro pad for Windows. Completely private and fully local.
+                        WinDeck transforms your Android device into a highly customizable, zero-latency macro pad for
+                        Windows. Completely private and fully local.
                     </p>
                 </div>
-                
+
                 <div class="glass-panel p-6 rounded-3xl border border-white/5">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-green-400 mb-4">Network Interfaces</h3>
                     <div class="space-y-4">
@@ -384,32 +593,70 @@
 
                 <!-- DATA SHARING -->
                 <div class="glass-panel p-6 rounded-3xl border border-white/5">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-[#0078d4] mb-2">Data Sharing & Privacy</h3>
-                    <p class="text-xs text-white/40 mb-4">WinDeck is completely local. No data is ever sent to any external server.</p>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-[#0078d4] mb-2">Data Sharing & Privacy
+                    </h3>
+                    <p class="text-xs text-white/40 mb-4">WinDeck is completely local. No data is ever sent to any
+                        external server.</p>
                     <div class="space-y-3">
                         <div class="flex items-start gap-3 p-3 bg-green-500/5 border border-green-500/20 rounded-xl">
-                            <div class="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <div
+                                class="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e"
+                                    stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
                             </div>
-                            <div><div class="text-sm text-white font-medium">100% Local Network</div><div class="text-xs text-white/40 mt-0.5">All communication happens directly between your PC and phone over your local Wi-Fi network. WinDeck does not use the internet.</div></div>
+                            <div>
+                                <div class="text-sm text-white font-medium">100% Local Network</div>
+                                <div class="text-xs text-white/40 mt-0.5">All communication happens directly between
+                                    your PC and phone over your local Wi-Fi network. WinDeck does not use the internet.
+                                </div>
+                            </div>
                         </div>
                         <div class="flex items-start gap-3 p-3 bg-green-500/5 border border-green-500/20 rounded-xl">
-                            <div class="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <div
+                                class="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e"
+                                    stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
                             </div>
-                            <div><div class="text-sm text-white font-medium">No Data Collection</div><div class="text-xs text-white/40 mt-0.5">WinDeck collects zero analytics, usage data, crash reports, or personal information. Your layout, device names, and settings stay only on your device.</div></div>
+                            <div>
+                                <div class="text-sm text-white font-medium">No Data Collection</div>
+                                <div class="text-xs text-white/40 mt-0.5">WinDeck collects zero analytics, usage data,
+                                    crash reports, or personal information. Your layout, device names, and settings stay
+                                    only on your device.</div>
+                            </div>
                         </div>
                         <div class="flex items-start gap-3 p-3 bg-green-500/5 border border-green-500/20 rounded-xl">
-                            <div class="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <div
+                                class="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e"
+                                    stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
                             </div>
-                            <div><div class="text-sm text-white font-medium">No Third-Party Sharing</div><div class="text-xs text-white/40 mt-0.5">Your data is never shared with third parties. There are no ads, no tracking, and no telemetry services integrated in this app.</div></div>
+                            <div>
+                                <div class="text-sm text-white font-medium">No Third-Party Sharing</div>
+                                <div class="text-xs text-white/40 mt-0.5">Your data is never shared with third parties.
+                                    There are no ads, no tracking, and no telemetry services integrated in this app.
+                                </div>
+                            </div>
                         </div>
                         <div class="flex items-start gap-3 p-3 bg-[#0078d4]/5 border border-[#0078d4]/20 rounded-xl">
-                            <div class="w-5 h-5 rounded-full bg-[#0078d4]/20 flex items-center justify-center shrink-0 mt-0.5">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                            <div
+                                class="w-5 h-5 rounded-full bg-[#0078d4]/20 flex items-center justify-center shrink-0 mt-0.5">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0078d4"
+                                    stroke-width="2.5">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                </svg>
                             </div>
-                            <div><div class="text-sm text-white font-medium">Files Transferred Stay Local</div><div class="text-xs text-white/40 mt-0.5">When you use DropZone to transfer files between your phone and PC, they are sent directly over your Wi-Fi — never through a cloud or external server.</div></div>
+                            <div>
+                                <div class="text-sm text-white font-medium">Files Transferred Stay Local</div>
+                                <div class="text-xs text-white/40 mt-0.5">When you use DropZone to transfer files
+                                    between your phone and PC, they are sent directly over your Wi-Fi — never through a
+                                    cloud or external server.</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -419,39 +666,54 @@
                     <h3 class="text-xs font-bold uppercase tracking-wider text-[#0078d4] mb-2">Notifications</h3>
                     <p class="text-xs text-white/40 mb-4">Windows toast notifications for device events.</p>
                     <div class="space-y-3">
-                        <label class="flex items-center justify-between p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-white/10 transition-colors">
+                        <label
+                            class="flex items-center justify-between p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-white/10 transition-colors">
                             <div>
                                 <div class="text-sm text-white font-medium">Device Connected</div>
-                                <div class="text-xs text-white/40">Show a notification when a phone pairs successfully</div>
+                                <div class="text-xs text-white/40">Show a notification when a phone pairs successfully
+                                </div>
                             </div>
                             <div class="relative">
-                                <input type="checkbox" id="notif-connect" onchange="saveNotifPref('notif-connect', this.checked)" class="sr-only peer">
-                                <div onclick="document.getElementById('notif-connect').click()" class="w-10 h-5 bg-white/10 peer-checked:bg-[#0078d4] rounded-full cursor-pointer transition-colors relative">
-                                    <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5" id="toggle-notif-connect-knob"></div>
+                                <input type="checkbox" id="notif-connect"
+                                    onchange="saveNotifPref('notif-connect', this.checked)" class="sr-only peer">
+                                <div onclick="document.getElementById('notif-connect').click()"
+                                    class="w-10 h-5 bg-white/10 peer-checked:bg-[#0078d4] rounded-full cursor-pointer transition-colors relative">
+                                    <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5"
+                                        id="toggle-notif-connect-knob"></div>
                                 </div>
                             </div>
                         </label>
-                        <label class="flex items-center justify-between p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-white/10 transition-colors">
+                        <label
+                            class="flex items-center justify-between p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-white/10 transition-colors">
                             <div>
                                 <div class="text-sm text-white font-medium">Device Disconnected</div>
-                                <div class="text-xs text-white/40">Show a notification when a paired phone disconnects</div>
+                                <div class="text-xs text-white/40">Show a notification when a paired phone disconnects
+                                </div>
                             </div>
                             <div class="relative">
-                                <input type="checkbox" id="notif-disconnect" onchange="saveNotifPref('notif-disconnect', this.checked)" class="sr-only peer">
-                                <div onclick="document.getElementById('notif-disconnect').click()" class="w-10 h-5 bg-white/10 peer-checked:bg-[#0078d4] rounded-full cursor-pointer transition-colors relative">
-                                    <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform" id="toggle-notif-disconnect-knob"></div>
+                                <input type="checkbox" id="notif-disconnect"
+                                    onchange="saveNotifPref('notif-disconnect', this.checked)" class="sr-only peer">
+                                <div onclick="document.getElementById('notif-disconnect').click()"
+                                    class="w-10 h-5 bg-white/10 peer-checked:bg-[#0078d4] rounded-full cursor-pointer transition-colors relative">
+                                    <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                        id="toggle-notif-disconnect-knob"></div>
                                 </div>
                             </div>
                         </label>
-                        <label class="flex items-center justify-between p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-white/10 transition-colors">
+                        <label
+                            class="flex items-center justify-between p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-white/10 transition-colors">
                             <div>
                                 <div class="text-sm text-white font-medium">File Received</div>
-                                <div class="text-xs text-white/40">Show a notification when a file arrives from your phone</div>
+                                <div class="text-xs text-white/40">Show a notification when a file arrives from your
+                                    phone</div>
                             </div>
                             <div class="relative">
-                                <input type="checkbox" id="notif-file" onchange="saveNotifPref('notif-file', this.checked)" class="sr-only peer">
-                                <div onclick="document.getElementById('notif-file').click()" class="w-10 h-5 bg-white/10 peer-checked:bg-[#0078d4] rounded-full cursor-pointer transition-colors relative">
-                                    <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform" id="toggle-notif-file-knob"></div>
+                                <input type="checkbox" id="notif-file"
+                                    onchange="saveNotifPref('notif-file', this.checked)" class="sr-only peer">
+                                <div onclick="document.getElementById('notif-file').click()"
+                                    class="w-10 h-5 bg-white/10 peer-checked:bg-[#0078d4] rounded-full cursor-pointer transition-colors relative">
+                                    <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                        id="toggle-notif-file-knob"></div>
                                 </div>
                             </div>
                         </label>
@@ -460,65 +722,92 @@
 
                 <!-- HELP CENTER -->
                 <div class="glass-panel p-6 rounded-3xl border border-white/5">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-[#0078d4] mb-4">Help Center — How to Use WinDeck</h3>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-[#0078d4] mb-4">Help Center — How to Use
+                        WinDeck</h3>
                     <div class="space-y-4">
                         <div class="p-4 bg-white/5 rounded-xl border border-white/5">
                             <div class="flex items-center gap-2 mb-2">
-                                <span class="w-5 h-5 rounded-full bg-[#0078d4] text-white text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
+                                <span
+                                    class="w-5 h-5 rounded-full bg-[#0078d4] text-white text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
                                 <span class="text-sm font-bold text-white">Start the Server</span>
                             </div>
-                            <p class="text-xs text-white/50 pl-7">Open WinDeck on your PC. Click "Start Server" and enter a room name. A 6-digit Pairing Code will appear on screen.</p>
+                            <p class="text-xs text-white/50 pl-7">Open WinDeck on your PC. Click "Start Server" and
+                                enter a room name. A 6-digit Pairing Code will appear on screen.</p>
                         </div>
                         <div class="p-4 bg-white/5 rounded-xl border border-white/5">
                             <div class="flex items-center gap-2 mb-2">
-                                <span class="w-5 h-5 rounded-full bg-[#0078d4] text-white text-[10px] font-bold flex items-center justify-center shrink-0">2</span>
+                                <span
+                                    class="w-5 h-5 rounded-full bg-[#0078d4] text-white text-[10px] font-bold flex items-center justify-center shrink-0">2</span>
                                 <span class="text-sm font-bold text-white">Connect Your Phone</span>
                             </div>
-                            <p class="text-xs text-white/50 pl-7">Open WinDeck on your Android phone. Make sure both devices are on the same Wi-Fi. The app will auto-discover your PC, or you can enter the Pairing Code manually.</p>
+                            <p class="text-xs text-white/50 pl-7">Open WinDeck on your Android phone. Make sure both
+                                devices are on the same Wi-Fi. The app will auto-discover your PC, or you can enter the
+                                Pairing Code manually.</p>
                         </div>
                         <div class="p-4 bg-white/5 rounded-xl border border-white/5">
                             <div class="flex items-center gap-2 mb-2">
-                                <span class="w-5 h-5 rounded-full bg-[#0078d4] text-white text-[10px] font-bold flex items-center justify-center shrink-0">3</span>
+                                <span
+                                    class="w-5 h-5 rounded-full bg-[#0078d4] text-white text-[10px] font-bold flex items-center justify-center shrink-0">3</span>
                                 <span class="text-sm font-bold text-white">Build Your Layout</span>
                             </div>
-                            <p class="text-xs text-white/50 pl-7">Go to the Editor tab. Drag tiles from the panel (PC Apps, System Controls, Websites) onto the phone preview. Click "Save & Sync" — tiles appear on your phone instantly.</p>
+                            <p class="text-xs text-white/50 pl-7">Go to the Editor tab. Drag tiles from the panel (PC
+                                Apps, System Controls, Websites) onto the phone preview. Click "Save & Sync" — tiles
+                                appear on your phone instantly.</p>
                         </div>
                         <div class="p-4 bg-white/5 rounded-xl border border-white/5">
                             <div class="flex items-center gap-2 mb-2">
-                                <span class="w-5 h-5 rounded-full bg-[#0078d4] text-white text-[10px] font-bold flex items-center justify-center shrink-0">4</span>
+                                <span
+                                    class="w-5 h-5 rounded-full bg-[#0078d4] text-white text-[10px] font-bold flex items-center justify-center shrink-0">4</span>
                                 <span class="text-sm font-bold text-white">Transfer Files (DropZone)</span>
                             </div>
-                            <p class="text-xs text-white/50 pl-7">To send a file from your Phone to PC: tap the DropZone tile on your phone, select a file — it lands in your PC's Downloads folder. To send from PC to Phone: click the "Send to Phone" box on the Dashboard, choose a file, and it opens on your phone automatically.</p>
+                            <p class="text-xs text-white/50 pl-7">To send a file from your Phone to PC: tap the DropZone
+                                tile on your phone, select a file — it lands in your PC's Downloads folder. To send from
+                                PC to Phone: click the "Send to Phone" box on the Dashboard, choose a file, and it opens
+                                on your phone automatically.</p>
                         </div>
                         <div class="p-4 bg-white/5 rounded-xl border border-white/5">
                             <div class="flex items-center gap-2 mb-2">
-                                <span class="w-5 h-5 rounded-full bg-[#0078d4] text-white text-[10px] font-bold flex items-center justify-center shrink-0">5</span>
+                                <span
+                                    class="w-5 h-5 rounded-full bg-[#0078d4] text-white text-[10px] font-bold flex items-center justify-center shrink-0">5</span>
                                 <span class="text-sm font-bold text-white">Rename Your Device</span>
                             </div>
-                            <p class="text-xs text-white/50 pl-7">On the Dashboard, click the ✏️ pencil icon next to your connected device name to give it a custom label. It is saved for future sessions.</p>
+                            <p class="text-xs text-white/50 pl-7">On the Dashboard, click the ✏️ pencil icon next to
+                                your connected device name to give it a custom label. It is saved for future sessions.
+                            </p>
                         </div>
                     </div>
                 </div>
 
                 <!-- LEGAL & PRIVACY -->
                 <div class="glass-panel p-6 rounded-3xl border border-white/5">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-[#0078d4] mb-4">Legal & Privacy Policy</h3>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-[#0078d4] mb-4">Legal & Privacy Policy
+                    </h3>
                     <div class="space-y-4 text-xs text-white/50 leading-relaxed">
                         <div>
                             <div class="text-sm text-white font-semibold mb-1">Terms of Use</div>
-                            <p>WinDeck is provided as-is for personal, non-commercial use. You agree not to reverse-engineer, redistribute, or use the software for any unlawful purpose. The developers are not liable for any damage, data loss, or security issues arising from use of this software.</p>
+                            <p>WinDeck is provided as-is for personal, non-commercial use. You agree not to
+                                reverse-engineer, redistribute, or use the software for any unlawful purpose. The
+                                developers are not liable for any damage, data loss, or security issues arising from use
+                                of this software.</p>
                         </div>
                         <div class="border-t border-white/5 pt-4">
                             <div class="text-sm text-white font-semibold mb-1">Privacy Policy</div>
-                            <p>WinDeck does not collect, store, or transmit any personal data to external parties. All data — including your device name, layout configuration, and transferred files — remains strictly on your local devices. WinDeck has no backend server, no database, and no user accounts.</p>
+                            <p>WinDeck does not collect, store, or transmit any personal data to external parties. All
+                                data — including your device name, layout configuration, and transferred files — remains
+                                strictly on your local devices. WinDeck has no backend server, no database, and no user
+                                accounts.</p>
                         </div>
                         <div class="border-t border-white/5 pt-4">
                             <div class="text-sm text-white font-semibold mb-1">Open Source Licenses</div>
-                            <p>WinDeck is built using open-source technologies including Node.js, Electron, Flutter, Socket.IO, Express, and Tailwind CSS. Each carries its own license. This product is not affiliated with or endorsed by any of these projects or their maintainers.</p>
+                            <p>WinDeck is built using open-source technologies including Node.js, Electron, Flutter,
+                                Socket.IO, Express, and Tailwind CSS. Each carries its own license. This product is not
+                                affiliated with or endorsed by any of these projects or their maintainers.</p>
                         </div>
                         <div class="border-t border-white/5 pt-4">
                             <div class="text-sm text-white font-semibold mb-1">No Warranty</div>
-                            <p>This software is provided without warranty of any kind, express or implied. Use at your own risk. Features may change, break, or be removed in future versions without notice.</p>
+                            <p>This software is provided without warranty of any kind, express or implied. Use at your
+                                own risk. Features may change, break, or be removed in future versions without notice.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -527,32 +816,51 @@
                 <div class="glass-panel p-6 rounded-3xl border border-white/5">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-[#0078d4] mb-4">About WinDeck</h3>
                     <p class="text-sm text-white/60 leading-relaxed mb-5">
-                        WinDeck was born from a simple idea — why pay for a premium macro pad when your Android phone is right there? We wanted a fast, private, fully-local alternative that puts <em>you</em> in control.
+                        WinDeck was born from a simple idea — why pay for a premium macro pad when your Android phone is
+                        right there? We wanted a fast, private, fully-local alternative that puts <em>you</em> in
+                        control.
                     </p>
-                    
+
                     <div class="p-4 bg-white/5 rounded-xl border border-white/5 mb-5">
                         <div class="text-xs font-bold text-white/40 uppercase tracking-widest mb-2">Inspiration</div>
-                        <p class="text-xs text-white/50 leading-relaxed">WinDeck draws inspiration from <span class="text-white font-semibold">PhoneDeck</span> — a fantastic web-based tool that lets you use your phone as a stream deck. We love what they built. WinDeck takes a different approach: it runs fully on your local network, is open for customization, and targets Windows-native control rather than a browser-based experience.</p>
-                        <a class="inline-flex items-center gap-1.5 mt-3 text-[#0078d4] text-xs font-semibold hover:underline" href="#" onclick="require('electron').shell.openExternal('https://phonedeck.io'); return false;">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        <p class="text-xs text-white/50 leading-relaxed">WinDeck draws inspiration from <span
+                                class="text-white font-semibold">PhoneDeck</span> — a fantastic web-based tool that lets
+                            you use your phone as a stream deck. We love what they built. WinDeck takes a different
+                            approach: it runs fully on your local network, is open for customization, and targets
+                            Windows-native control rather than a browser-based experience.</p>
+                        <a class="inline-flex items-center gap-1.5 mt-3 text-[#0078d4] text-xs font-semibold hover:underline"
+                            href="#" onclick="window.electronAPI.openExternal('https://phonedeck.io'); return false;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                <polyline points="15 3 21 3 21 9"></polyline>
+                                <line x1="10" y1="14" x2="21" y2="3"></line>
+                            </svg>
                             Visit phonedeck.io
                         </a>
                     </div>
 
                     <div class="border-t border-white/5 pt-4">
-                        <div class="text-xs font-bold text-white/40 uppercase tracking-widest mb-3">Credits & Built With</div>
+                        <div class="text-xs font-bold text-white/40 uppercase tracking-widest mb-3">Credits & Built With
+                        </div>
                         <div class="grid grid-cols-2 gap-2">
-                            <div class="p-2.5 bg-white/5 rounded-lg text-xs text-white/60"><span class="text-white font-semibold">Electron</span><br>Desktop shell</div>
-                            <div class="p-2.5 bg-white/5 rounded-lg text-xs text-white/60"><span class="text-white font-semibold">Flutter</span><br>Android app</div>
-                            <div class="p-2.5 bg-white/5 rounded-lg text-xs text-white/60"><span class="text-white font-semibold">Socket.IO</span><br>Real-time sync</div>
-                            <div class="p-2.5 bg-white/5 rounded-lg text-xs text-white/60"><span class="text-white font-semibold">Express.js</span><br>HTTP server</div>
-                            <div class="p-2.5 bg-white/5 rounded-lg text-xs text-white/60"><span class="text-white font-semibold">Tailwind CSS</span><br>UI styling</div>
-                            <div class="p-2.5 bg-white/5 rounded-lg text-xs text-white/60"><span class="text-white font-semibold">Multer</span><br>File transfer</div>
+                            <div class="p-2.5 bg-white/5 rounded-lg text-xs text-white/60"><span
+                                    class="text-white font-semibold">Electron</span><br>Desktop shell</div>
+                            <div class="p-2.5 bg-white/5 rounded-lg text-xs text-white/60"><span
+                                    class="text-white font-semibold">Flutter</span><br>Android app</div>
+                            <div class="p-2.5 bg-white/5 rounded-lg text-xs text-white/60"><span
+                                    class="text-white font-semibold">Socket.IO</span><br>Real-time sync</div>
+                            <div class="p-2.5 bg-white/5 rounded-lg text-xs text-white/60"><span
+                                    class="text-white font-semibold">Express.js</span><br>HTTP server</div>
+                            <div class="p-2.5 bg-white/5 rounded-lg text-xs text-white/60"><span
+                                    class="text-white font-semibold">Tailwind CSS</span><br>UI styling</div>
+                            <div class="p-2.5 bg-white/5 rounded-lg text-xs text-white/60"><span
+                                    class="text-white font-semibold">Multer</span><br>File transfer</div>
                         </div>
                     </div>
 
                     <div class="border-t border-white/5 pt-4 mt-4 flex items-center justify-between">
-                        <div class="text-xs text-white/30">WinDeck v1.1.0 · Made with ❤️ for Windows</div>
+                        <div class="text-xs text-white/30">WinDeck v1.2.0 · Made with ❤️ for Windows</div>
                         <div class="text-xs text-white/20">© 2025 WinDeck</div>
                     </div>
                 </div>
@@ -560,104 +868,202 @@
 
         </div>
     </div>
-    
-<!-- URL Editor Modal -->
+
+    <!-- URL Editor Modal -->
     <div id="url-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center">
         <div class="glass-panel p-6 rounded-3xl w-80 flex flex-col border border-white/10 shadow-2xl ">
             <h3 id="url-modal-title" class="text-lg font-bold text-white mb-4">Add Website</h3>
             <input type="hidden" id="url-modal-slot-index">
             <div class="mb-3 relative z-10">
                 <label class="text-[10px] uppercase text-white/50 font-bold mb-1 block">Title</label>
-                <input type="text" id="url-modal-title-input" class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0078d4]" placeholder="e.g. YouTube">
+                <input type="text" id="url-modal-title-input"
+                    class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0078d4]"
+                    placeholder="e.g. YouTube">
             </div>
             <div class="mb-5 relative z-10">
                 <label class="text-[10px] uppercase text-white/50 font-bold mb-1 block">URL</label>
-                <input type="text" id="url-modal-url-input" class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0078d4]" placeholder="https://...">
+                <input type="text" id="url-modal-url-input"
+                    class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#0078d4]"
+                    placeholder="https://...">
             </div>
             <div class="flex justify-end gap-2 relative z-10">
-                <button id="url-modal-delete-btn" onclick="deleteUrlModal()" class="hidden px-4 py-2 rounded-lg text-sm font-semibold text-red-400 bg-red-400/10 hover:bg-red-400/20 mr-auto">Delete</button>
-                <button onclick="closeUrlModal()" class="px-4 py-2 rounded-lg text-sm font-semibold text-white/60 hover:text-white bg-white/5 hover:bg-white/10">Cancel</button>
-                <button onclick="saveUrlModal()" class="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#0078d4] hover:bg-blue-500">Save</button>
+                <button id="url-modal-delete-btn" onclick="deleteUrlModal()"
+                    class="hidden px-4 py-2 rounded-lg text-sm font-semibold text-red-400 bg-red-400/10 hover:bg-red-400/20 mr-auto">Delete</button>
+                <button onclick="closeUrlModal()"
+                    class="px-4 py-2 rounded-lg text-sm font-semibold text-white/60 hover:text-white bg-white/5 hover:bg-white/10">Cancel</button>
+                <button onclick="saveUrlModal()"
+                    class="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#0078d4] hover:bg-blue-500">Save</button>
             </div>
         </div>
     </div>
 
     <!-- What's New Modal -->
-    <div id="whats-new-modal" class="hidden fixed inset-0 z-[60] bg-black/80 backdrop-blur-md flex items-center justify-center">
-        <div class="glass-panel p-8 rounded-[32px] w-[420px] max-w-full flex flex-col border border-white/10 shadow-[0_0_80px_rgba(0,120,212,0.15)] relative overflow-hidden">
+    <div id="whats-new-modal"
+        class="hidden fixed inset-0 z-[60] bg-black/80 backdrop-blur-md flex items-center justify-center">
+        <div
+            class="glass-panel p-8 rounded-[32px] w-[420px] max-w-full flex flex-col border border-white/10 shadow-[0_0_80px_rgba(0,120,212,0.15)] relative overflow-hidden">
             <!-- Glow background inside modal -->
-            <div class="absolute -top-20 -right-20 w-64 h-64 bg-[#0078d4] opacity-20 blur-[60px] rounded-full pointer-events-none"></div>
-            
-            <div class="flex items-center gap-3 mb-6 relative z-10">
-                <div class="w-10 h-10 rounded-full bg-[#0078d4]/10 border border-[#0078d4]/30 flex items-center justify-center">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4l3 3"></path></svg>
-                </div>
-                <h3 class="text-2xl font-bold text-white tracking-tight">What's New in <span class="text-[#0078d4]">v1.1</span></h3>
+            <div
+                class="absolute -top-20 -right-20 w-64 h-64 bg-[#0078d4] opacity-20 blur-[60px] rounded-full pointer-events-none">
             </div>
-            
+
+            <div class="flex items-center gap-3 mb-6 relative z-10">
+                <div
+                    class="w-10 h-10 rounded-full bg-[#0078d4]/10 border border-[#0078d4]/30 flex items-center justify-center">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0078d4" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M12 8v4l3 3"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-white tracking-tight">What's New in <span
+                        class="text-[#0078d4]">v1.1</span></h3>
+            </div>
+
             <div class="flex flex-col gap-5 relative z-10">
                 <div class="flex gap-4 items-start">
-                    <div class="w-8 h-8 rounded-xl bg-emerald-400/10 border border-emerald-400/20 flex items-center justify-center shrink-0 mt-0.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg></div>
+                    <div
+                        class="w-8 h-8 rounded-xl bg-emerald-400/10 border border-emerald-400/20 flex items-center justify-center shrink-0 mt-0.5">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2">
+                            <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                    </div>
                     <div>
                         <h4 class="text-sm font-bold text-white mb-1">DropZone Transfer</h4>
-                        <p class="text-[13px] text-white/50 leading-relaxed">Securely send photos & files directly from your phone to your PC's Downloads folder.</p>
+                        <p class="text-[13px] text-white/50 leading-relaxed">Securely send photos & files directly from
+                            your phone to your PC's Downloads folder.</p>
                     </div>
                 </div>
                 <div class="flex gap-4 items-start">
-                    <div class="w-8 h-8 rounded-xl bg-pink-400/10 border border-pink-400/20 flex items-center justify-center shrink-0 mt-0.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2"><path d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg></div>
+                    <div
+                        class="w-8 h-8 rounded-xl bg-pink-400/10 border border-pink-400/20 flex items-center justify-center shrink-0 mt-0.5">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2">
+                            <path
+                                d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                        </svg>
+                    </div>
                     <div>
                         <h4 class="text-sm font-bold text-white mb-1">Wireless AirMouse</h4>
-                        <p class="text-[13px] text-white/50 leading-relaxed">Zero-latency touchpad control and presentation clicker using native Windows APIs.</p>
+                        <p class="text-[13px] text-white/50 leading-relaxed">Zero-latency touchpad control and
+                            presentation clicker using native Windows APIs.</p>
                     </div>
                 </div>
                 <div class="flex gap-4 items-start">
-                    <div class="w-8 h-8 rounded-xl bg-indigo-400/10 border border-indigo-400/20 flex items-center justify-center shrink-0 mt-0.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></div>
+                    <div
+                        class="w-8 h-8 rounded-xl bg-indigo-400/10 border border-indigo-400/20 flex items-center justify-center shrink-0 mt-0.5">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2">
+                            <path
+                                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                    </div>
                     <div>
                         <h4 class="text-sm font-bold text-white mb-1">Webcam Bridge</h4>
-                        <p class="text-[13px] text-white/50 leading-relaxed">Turn your phone into a webcam via OBS. Use endpoint <code>/camera-view</code></p>
+                        <p class="text-[13px] text-white/50 leading-relaxed">Turn your phone into a webcam via OBS. Use
+                            endpoint <code>/camera-view</code></p>
                     </div>
                 </div>
                 <div class="flex gap-4 items-start">
-                    <div class="w-8 h-8 rounded-xl bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center shrink-0 mt-0.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+                    <div
+                        class="w-8 h-8 rounded-xl bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center shrink-0 mt-0.5">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2">
+                            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
                     <div>
                         <h4 class="text-sm font-bold text-white mb-1">Pomodoro Timers</h4>
-                        <p class="text-[13px] text-white/50 leading-relaxed">Countdown timers directly on your tiles with vibration alerts.</p>
+                        <p class="text-[13px] text-white/50 leading-relaxed">Countdown timers directly on your tiles
+                            with vibration alerts.</p>
                     </div>
                 </div>
             </div>
-            
+
             <div class="mt-6 bg-[#0078d4]/10 border border-[#0078d4]/20 rounded-xl p-3 relative z-10">
-                <p class="text-xs text-[#0078d4] font-medium text-center">Drag these new tiles from the "System Controls" sidebar to your layout!</p>
+                <p class="text-xs text-[#0078d4] font-medium text-center">Drag these new tiles from the "System
+                    Controls" sidebar to your layout!</p>
             </div>
-            
-            <button onclick="closeWhatsNewModal()" class="w-full mt-6 bg-[#0078d4] text-white px-4 py-3.5 rounded-xl text-sm font-semibold hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(0,120,212,0.3)] relative z-10">
+
+            <button onclick="closeWhatsNewModal()"
+                class="w-full mt-6 bg-[#0078d4] text-white px-4 py-3.5 rounded-xl text-sm font-semibold hover:bg-blue-500 transition-all shadow-[0_0_20px_rgba(0,120,212,0.3)] relative z-10">
                 Let's Go!
             </button>
         </div>
     </div>
 
     <script>
-        const { ipcRenderer } = require('electron');
-        const os = require('os');
-        
+        const ipcRenderer = {
+            send: window.electronAPI.send,
+            on: window.electronAPI.on
+        };
+        const os = {
+            hostname: window.electronAPI.getHostname,
+            networkInterfaces: () => ({ 'net': window.electronAPI.getLocalIPs().map(ip => ({ family: 'IPv4', internal: false, address: ip })) })
+        };
+
         let serverStarted = false;
 
+        const placeholders = [
+            "Search for Instagram...",
+            "Search for YouTube...",
+            "Search for VS Code...",
+            "Search apps, websites, controls..."
+        ];
+        let placeholderIdx = 0;
+        let charIdx = 0;
+        let isDeleting = false;
+        let searchInputEl;
+
+        function animatePlaceholder() {
+            if (!searchInputEl) searchInputEl = document.getElementById('asset-search');
+            if (!searchInputEl) return;
+            if (document.activeElement === searchInputEl) {
+                searchInputEl.setAttribute('placeholder', "Search...");
+                setTimeout(animatePlaceholder, 1000);
+                return;
+            }
+
+            const currentText = placeholders[placeholderIdx];
+
+            if (isDeleting) charIdx--;
+            else charIdx++;
+
+            searchInputEl.setAttribute('placeholder', currentText.substring(0, charIdx) + (charIdx < currentText.length ? '|' : ''));
+
+            let typeSpeed = isDeleting ? 30 : 80;
+
+            if (!isDeleting && charIdx === currentText.length) {
+                typeSpeed = 2000;
+                isDeleting = true;
+            } else if (isDeleting && charIdx === 0) {
+                isDeleting = false;
+                placeholderIdx = (placeholderIdx + 1) % placeholders.length;
+                typeSpeed = 500;
+            }
+
+            setTimeout(animatePlaceholder, typeSpeed);
+        }
+        setTimeout(animatePlaceholder, 1000);
+
         function showView(id) {
+            if (id === 'view-dashboard' && !serverStarted) {
+                id = 'view-create-room';
+            }
+
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            
+
             // Update nav styling
             document.querySelectorAll('.nav-btn').forEach(el => {
                 el.classList.remove('bg-[#0078d4]/10', 'text-[#0078d4]');
                 el.classList.add('text-white/40');
             });
-            const activeNav = document.getElementById('nav-' + id.replace('view-', ''));
-            if(activeNav) {
+            let navId = id.replace('view-', '');
+            if (navId === 'create-room') navId = 'dashboard';
+            const activeNav = document.getElementById('nav-' + navId);
+            if (activeNav) {
                 activeNav.classList.remove('text-white/40');
                 activeNav.classList.add('bg-[#0078d4]/10', 'text-[#0078d4]');
             }
 
-            if(id === 'view-settings') {
+            if (id === 'view-settings') {
                 const nets = os.networkInterfaces();
                 for (const name of Object.keys(nets)) {
                     for (const net of nets[name]) {
@@ -672,20 +1078,80 @@
 
         function showSettings() { showView('view-settings'); }
 
+        const POPULAR_WEBSITES = [
+            { title: "YouTube", url: "https://youtube.com" },
+            { title: "ChatGPT", url: "https://chatgpt.com" },
+            { title: "GitHub", url: "https://github.com" },
+            { title: "Instagram", url: "https://instagram.com" },
+            { title: "Twitter", url: "https://twitter.com" },
+            { title: "Netflix", url: "https://netflix.com" },
+            { title: "Notion", url: "https://notion.so" },
+            { title: "Figma", url: "https://figma.com" },
+            { title: "Gmail", url: "https://mail.google.com" },
+            { title: "Spotify", url: "https://open.spotify.com" },
+            { title: "WhatsApp", url: "https://web.whatsapp.com" },
+            { title: "LinkedIn", url: "https://linkedin.com" },
+            { title: "Reddit", url: "https://reddit.com" }
+        ];
+
+        function initWebPresets() {
+            const grid = document.getElementById('preset-web-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            POPULAR_WEBSITES.forEach(site => {
+                const el = document.createElement('div');
+                el.className = 'asset-item cursor-grab bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col items-center justify-center text-center hover:bg-white/10 transition-colors';
+                el.draggable = true;
+                const domain = new URL(site.url).hostname;
+                el.innerHTML = `
+                    <img src="https://www.google.com/s2/favicons?sz=64&domain_url=${domain}" class="w-8 h-8 mb-2 rounded-lg pointer-events-none" onerror="this.outerHTML='<span class=\\'text-xl mb-1\\'>🌐</span>'">
+                    <span class="text-[10px] font-semibold text-white truncate w-full px-1 pointer-events-none">${site.title}</span>
+                `;
+                el.ondragstart = (e) => {
+                    e.dataTransfer.setData("application/json", JSON.stringify({
+                        type: 'url', title: site.title, iconType: 'emoji', iconValue: 'globe', payload: site.url
+                    }));
+                };
+                grid.appendChild(el);
+            });
+        }
+
+        function filterAssets() {
+            const query = (document.getElementById('asset-search').value || '').toLowerCase();
+            document.querySelectorAll('.asset-item').forEach(el => {
+                const text = el.textContent.toLowerCase();
+                if (text.includes(query)) {
+                    el.style.display = 'flex';
+                } else {
+                    el.style.display = 'none';
+                }
+            });
+        }
+
         function initApp() {
-            document.getElementById('room-name-input').value = os.hostname();
-            showView('view-create-room');
+            console.log("DEBUG: initApp called!");
+            const savedRoomName = localStorage.getItem('windeck_last_room_name');
+            document.getElementById('room-name-input').value = savedRoomName || os.hostname();
+
+            if (savedRoomName) {
+                // Auto-start server with saved room name — no button click needed on relaunch
+                createRoom();
+            } else {
+                showView('view-create-room');
+            }
+
             loadNotifPrefs();
-            
-            // Check and show What's New modal for v1.1.0
-            if (localStorage.getItem('shown_v1_1_whatsnew') !== 'true') {
+            initWebPresets();
+
+            // Check and show What's New modal for v1.2.0
+            if (localStorage.getItem('shown_v1_2_whatsnew') !== 'true') {
                 document.getElementById('whats-new-modal').classList.remove('hidden');
             }
         }
 
         function closeWhatsNewModal() {
             document.getElementById('whats-new-modal').classList.add('hidden');
-            localStorage.setItem('shown_v1_1_whatsnew', 'true');
+            localStorage.setItem('shown_v1_2_whatsnew', 'true');
         }
 
         // Window Controls
@@ -693,7 +1159,7 @@
         function minimizeApp() { ipcRenderer.send('minimize-app'); }
         function maximizeApp() { ipcRenderer.send('maximize-app'); }
 
-        
+
         function renameDevice() {
             const currentName = document.getElementById('dev-name').innerText;
             // Create inline modal (prompt() doesn't work in Electron)
@@ -728,8 +1194,14 @@
             overlay.onclick = (e) => { if (e.target === overlay) close(); };
         }
 
+        function _setKnob(key, isOn) {
+            const knob = document.getElementById('toggle-' + key + '-knob');
+            if (knob) knob.style.transform = isOn ? 'translateX(20px)' : 'translateX(0)';
+        }
+
         function saveNotifPref(key, value) {
             localStorage.setItem('windeck_notif_' + key, value ? 'true' : 'false');
+            _setKnob(key, value);
         }
 
         function loadNotifPrefs() {
@@ -738,6 +1210,7 @@
                 const isOn = saved === null ? (key === 'notif-connect') : saved === 'true';
                 const el = document.getElementById(key);
                 if (el) el.checked = isOn;
+                _setKnob(key, isOn);
             });
         }
 
@@ -749,6 +1222,7 @@
         // Server Actions
         function createRoom() {
             const name = document.getElementById('room-name-input').value.trim() || os.hostname();
+            localStorage.setItem('windeck_last_room_name', name);
             ipcRenderer.send('create-room', name);
             serverStarted = true;
             showView('view-dashboard');
@@ -761,6 +1235,7 @@
         function cancelRoom() {
             ipcRenderer.send('disconnect-client');
             serverStarted = false;
+            localStorage.removeItem('windeck_last_room_name');
             showView('view-create-room');
         }
 
@@ -777,17 +1252,17 @@
             const info = document.getElementById('connection-info');
             const btnDis = document.getElementById('btn-disconnect');
             const btnCancel = document.getElementById('btn-cancel-room');
-            
+
             const devNone = document.getElementById('device-none');
             const devActive = document.getElementById('device-active');
-            
+
             if (status.connected) {
                 info.innerText = `Connected`;
                 info.classList.add('text-green-400');
                 info.classList.remove('text-white/70');
                 btnDis.classList.remove('hidden');
                 btnCancel.classList.add('hidden');
-                
+
                 devNone.classList.add('hidden');
                 devActive.classList.remove('hidden');
                 devActive.classList.add('flex');
@@ -807,10 +1282,10 @@
         });
 
         ipcRenderer.on('telemetry-update', (event, data) => {
-            if(!serverStarted) return;
+            if (!serverStarted) return;
             document.getElementById('stat-cpu').innerText = data.cpuUsage;
             document.getElementById('bar-cpu').style.width = data.cpuUsage + '%';
-            
+
             document.getElementById('stat-ram').innerText = data.ramUsage;
             document.getElementById('bar-ram').style.width = data.ramUsage + '%';
         });
@@ -934,7 +1409,7 @@
                     { id: 'yt_8', type: 'macro', title: 'Miniplayer', iconValue: 'smartphone', payload: '$wshell = New-Object -ComObject wscript.shell; $wshell.SendKeys("i")' },
                 ]));
             }
-            
+
             // Backward compatibility migration for missing types
             layoutData.forEach(page => {
                 if (!page.type) {
@@ -945,7 +1420,7 @@
                     else page.type = 'custom';
                 }
             });
-            
+
             // Ensure Websites page exists
             if (!layoutData.find(p => p.type === 'websites')) {
                 layoutData.push(createDefaultPage("Websites", "websites"));
@@ -959,12 +1434,12 @@
 
             const grid = document.getElementById('phone-grid');
             grid.innerHTML = '';
-            
+
             page.tiles.forEach((tile, index) => {
                 const slot = document.createElement('div');
                 slot.className = 'w-full aspect-square rounded-2xl border-2 border-dashed border-white/20 flex flex-col items-center justify-center p-2 relative transition-all cursor-pointer hover:bg-white/5';
                 slot.dataset.index = index;
-                
+
                 // Dropzone handlers
                 slot.ondragover = (e) => { e.preventDefault(); slot.classList.add('border-[#0078d4]', 'bg-[#0078d4]/10'); };
                 slot.ondragleave = (e) => { slot.classList.remove('border-[#0078d4]', 'bg-[#0078d4]/10'); };
@@ -973,7 +1448,7 @@
                 // Click handler for URL Editor
                 slot.onclick = (e) => {
                     if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
-                    
+
                     if (tile && tile.type === 'url') {
                         openUrlModal(index, tile.title, tile.payload);
                     } else if (!tile || tile.type === 'empty') {
@@ -986,26 +1461,30 @@
                 if (tile && tile.type !== 'empty') {
                     slot.classList.remove('border-dashed', 'border-white/20');
                     slot.classList.add('border-white/10', 'bg-white/5');
-                    
+
                     let iconHtml = '';
                     if (tile.type === 'app') {
-                        iconHtml = `<img src="http://localhost:3000/icon?path=${encodeURIComponent(tile.payload)}" class="w-10 h-10 mb-2 object-contain" onerror="this.outerHTML='<div class=\\'w-10 h-10 mb-2 flex items-center justify-center bg-white/10 rounded-xl\\'>⚙️</div>'">`;
+                        iconHtml = `<img src="http://localhost:3000/icon?path=${encodeURIComponent(tile.payload)}&name=${encodeURIComponent(tile.title)}" class="w-10 h-10 mb-2 object-contain" onerror="this.outerHTML='<div class=\\'w-10 h-10 mb-2 flex items-center justify-center bg-white/10 rounded-xl\\'>⚙️</div>'">`;
+                    } else if (tile.type === 'url') {
+                        let domain = tile.payload;
+                        try { domain = new URL(tile.payload).hostname; } catch (e) { }
+                        iconHtml = `<img src="https://www.google.com/s2/favicons?sz=64&domain_url=${domain}" class="w-10 h-10 mb-2 rounded-xl object-contain pointer-events-none" onerror="this.outerHTML='<div class=\\'w-10 h-10 mb-2 flex items-center justify-center bg-white/10 rounded-xl pointer-events-none\\'>🌐</div>'">`;
                     } else {
-                        iconHtml = `<div class="mb-1">${getSvgIcon(tile.iconValue || tile.payload)}</div>`;
+                        iconHtml = `<div class="mb-1 pointer-events-none">${getSvgIcon(tile.iconValue || tile.payload)}</div>`;
                     }
 
                     slot.innerHTML = `
                         ${iconHtml}
-                        <span class="text-[10px] font-medium text-white/80 text-center w-full truncate px-1">${tile.title}</span>
+                        <span class="text-[10px] font-medium text-white/80 text-center w-full truncate px-1 pointer-events-none">${tile.title}</span>
                         <button onclick="removeTile(${index})" class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white text-xs flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity z-10">&times;</button>
                     `;
                     // Make existing tiles hoverable to show remove button
-                    slot.onmouseenter = () => { const b = slot.querySelector('button'); if(b) b.style.opacity = '1'; };
-                    slot.onmouseleave = () => { const b = slot.querySelector('button'); if(b) b.style.opacity = '0'; };
+                    slot.onmouseenter = () => { const b = slot.querySelector('button'); if (b) b.style.opacity = '1'; };
+                    slot.onmouseleave = () => { const b = slot.querySelector('button'); if (b) b.style.opacity = '0'; };
                 } else {
                     slot.innerHTML = `<span class="text-white/10 text-xl">+</span>`;
                 }
-                
+
                 grid.appendChild(slot);
             });
         }
@@ -1024,11 +1503,11 @@
             document.getElementById('url-modal-slot-index').value = index;
             document.getElementById('url-modal-title-input').value = title;
             document.getElementById('url-modal-url-input').value = url;
-            
+
             const isEdit = title !== '' || url !== '';
             document.getElementById('url-modal-title').innerText = isEdit ? 'Edit Website' : 'Add Website';
             document.getElementById('url-modal-delete-btn').style.display = isEdit ? 'block' : 'none';
-            
+
             document.getElementById('url-modal').classList.remove('hidden');
         }
 
@@ -1040,7 +1519,7 @@
             const index = parseInt(document.getElementById('url-modal-slot-index').value);
             let title = document.getElementById('url-modal-title-input').value.trim();
             let url = document.getElementById('url-modal-url-input').value.trim();
-            
+
             if (!title || !url) {
                 alert('Title and URL are required.');
                 return;
@@ -1048,7 +1527,7 @@
             if (!url.startsWith('http://') && !url.startsWith('https://')) {
                 url = 'https://' + url;
             }
-            
+
             layoutData[currentPageIndex].tiles[index] = {
                 id: 'tile_' + Math.random().toString(36).substr(2, 9),
                 type: 'url',
@@ -1071,8 +1550,8 @@
         function onDropTile(e, targetIndex) {
             e.preventDefault();
             const slot = document.querySelector(`[data-index="${targetIndex}"]`);
-            if(slot) slot.classList.remove('border-[#0078d4]', 'bg-[#0078d4]/10');
-            
+            if (slot) slot.classList.remove('border-[#0078d4]', 'bg-[#0078d4]/10');
+
             const dataStr = e.dataTransfer.getData("application/json");
             if (!dataStr) return;
             try {
@@ -1088,7 +1567,7 @@
                 layoutData[currentPageIndex].tiles[targetIndex] = tile;
                 renderEditor();
                 saveLayout();
-            } catch(err) { console.error(err); }
+            } catch (err) { console.error(err); }
         }
 
         function setAssetTab(tab) {
@@ -1135,10 +1614,10 @@
             container.innerHTML = '';
             systemControls.forEach((sys, i) => {
                 const div = document.createElement('div');
-                div.className = 'cursor-grab bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col items-center justify-center text-center transition-all hover:bg-white/10 hover:-translate-y-1';
+                div.className = 'asset-item cursor-grab bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col items-center justify-center text-center transition-all hover:bg-white/10 hover:-translate-y-1';
                 div.draggable = true;
                 div.ondragstart = (e) => onDragStartSystem(e, i);
-                div.innerHTML = `<div class="mb-1">${getSvgIcon(sys.icon)}</div><span class="text-[10px] font-semibold text-white/80 truncate w-full px-1">${sys.title}</span>`;
+                div.innerHTML = `<div class="mb-1 pointer-events-none">${getSvgIcon(sys.icon)}</div><span class="text-[10px] font-semibold text-white/80 truncate w-full px-1 pointer-events-none">${sys.title}</span>`;
                 container.appendChild(div);
             });
         }
@@ -1149,18 +1628,18 @@
             container.innerHTML = '';
 
             if (systemApps.length === 0) {
-                container.innerHTML = '<div class="col-span-3 text-center text-white/40 text-sm py-4">No apps found</div>';
+                container.innerHTML = `<div class="col-span-3 text-center text-white/40 text-sm py-4">No apps found.</div>`;
                 return;
             }
 
             systemApps.forEach((app, i) => {
                 const div = document.createElement('div');
-                div.className = 'cursor-grab bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col items-center justify-center text-center transition-all hover:bg-white/10 hover:-translate-y-1';
+                div.className = 'asset-item cursor-grab bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col items-center justify-center text-center transition-all hover:bg-white/10 hover:-translate-y-1';
                 div.draggable = true;
                 div.ondragstart = (e) => onDragStartApp(e, i);
                 div.innerHTML = `
-                    <img src="http://localhost:3000/icon?path=${encodeURIComponent(app.path)}" class="w-8 h-8 mb-2 object-contain pointer-events-none" onerror="this.style.display='none'">
-                    <span class="text-[10px] font-semibold text-white/80 truncate w-full px-1 pointer-events-none">${app.name}</span>
+                    <img src="http://localhost:3000/icon?path=${encodeURIComponent(app.path)}&name=${encodeURIComponent(app.name)}" class="w-8 h-8 mb-2 object-contain pointer-events-none" onerror="this.outerHTML='<div class=\\'w-8 h-8 mb-2 flex items-center justify-center bg-white/10 rounded-xl pointer-events-none\\'>⚙️</div>'">
+                    <span class="text-[10px] font-semibold text-white/80 truncate w-full px-1 pointer-events-none" title="${app.name}">${app.name}</span>
                 `;
                 container.appendChild(div);
             });
@@ -1195,18 +1674,18 @@
             renderEditor();
         });
 
-        function prevPage() { if(currentPageIndex > 0) { currentPageIndex--; renderEditor(); } }
-        function nextPage() { if(currentPageIndex < layoutData.length - 1) { currentPageIndex++; renderEditor(); } }
+        function prevPage() { if (currentPageIndex > 0) { currentPageIndex--; renderEditor(); } }
+        function nextPage() { if (currentPageIndex < layoutData.length - 1) { currentPageIndex++; renderEditor(); } }
         function addNewPage() {
             layoutData.push(createDefaultPage("New Page", "custom"));
             currentPageIndex = layoutData.length - 1;
             renderEditor();
         }
         function deleteCurrentPage() {
-            if(layoutData.length <= 1) return alert('Cannot delete the last page.');
-            if(confirm('Are you sure you want to delete this page?')) {
+            if (layoutData.length <= 1) return alert('Cannot delete the last page.');
+            if (confirm('Are you sure you want to delete this page?')) {
                 layoutData.splice(currentPageIndex, 1);
-                if(currentPageIndex >= layoutData.length) currentPageIndex = layoutData.length - 1;
+                if (currentPageIndex >= layoutData.length) currentPageIndex = layoutData.length - 1;
                 renderEditor();
             }
         }
@@ -1227,7 +1706,9 @@
             }, 1000);
         }
 
-        const systemControlsMod = require('./modules/systemControls');
+        const systemControlsMod = {
+            executeAction: (action) => window.electronAPI.send('execute-system-action', action)
+        };
 
         // Mock Phone UI Logic
         let mockPhoneScreenOn = true;
@@ -1248,7 +1729,7 @@
         let mockVolumeTimeout;
         function triggerMockVolume(up) {
             if (!mockPhoneScreenOn) toggleMockPhoneScreen(); // Wake screen if volume is pressed
-            
+
             if (up) {
                 mockVolume = Math.min(100, mockVolume + 10);
                 systemControlsMod.executeAction('volume-up');
@@ -1256,14 +1737,14 @@
                 mockVolume = Math.max(0, mockVolume - 10);
                 systemControlsMod.executeAction('volume-down');
             }
-            
+
             const slider = document.getElementById('mock-volume-slider');
             const fill = document.getElementById('mock-volume-fill');
-            
+
             fill.style.height = mockVolume + '%';
             slider.classList.remove('opacity-0', '-translate-x-4');
             slider.classList.add('opacity-100', 'translate-x-0');
-            
+
             clearTimeout(mockVolumeTimeout);
             mockVolumeTimeout = setTimeout(() => {
                 slider.classList.remove('opacity-100', 'translate-x-0');
@@ -1285,11 +1766,11 @@
                     const battery = await navigator.getBattery();
                     const level = Math.round(battery.level * 100);
                     const charging = battery.charging;
-                    
-                    const batteryIconHTML = charging ? 
-                        `<svg width="10" height="10" viewBox="0 0 24 24" fill="#34d399"><path d="M20 18V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2z"></path><path fill="#050507" d="M11 16l-3-5h3V6l3 5h-3v5z"></path></svg>` : 
-                        `<svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M20 18V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2z"></path><rect x="6" y="8" width="${(level/100)*12}" height="10" fill="#050507"></rect></svg>`;
-                    
+
+                    const batteryIconHTML = charging ?
+                        `<svg width="10" height="10" viewBox="0 0 24 24" fill="#34d399"><path d="M20 18V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2z"></path><path fill="#050507" d="M11 16l-3-5h3V6l3 5h-3v5z"></path></svg>` :
+                        `<svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M20 18V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2z"></path><rect x="6" y="8" width="${(level / 100) * 12}" height="10" fill="#050507"></rect></svg>`;
+
                     document.getElementById('mock-battery-icon').innerHTML = batteryIconHTML;
                 }
             } catch (e) {
@@ -1313,22 +1794,23 @@
         renderSystemControls();
 
         initApp();
-    
+
         function handlePcFileSelect(event) {
             const file = event.target.files[0];
             if (file) {
                 console.log("Sending file to phone: " + file.path);
                 ipcRenderer.send('send-file-to-phone', file.path);
-                
+
                 // Show temporary success feedback
                 const dropzone = event.target.parentElement;
                 const originalHTML = dropzone.innerHTML;
                 dropzone.innerHTML = '<div class="text-green-400 font-bold text-sm">Sent!</div>';
                 setTimeout(() => {
                     dropzone.innerHTML = originalHTML;
+                }, 2000);
             }
         }
-        
+
         // OTA Update Listeners
         ipcRenderer.on('update-available', (event, info) => {
             const banner = document.getElementById('update-banner');
@@ -1336,17 +1818,18 @@
             banner.classList.remove('hidden');
             text.innerText = `A new version (${info.version || ''}) is downloading...`;
         });
-        
+
         ipcRenderer.on('update-downloaded', (event, info) => {
             const btn = document.getElementById('update-btn');
             const text = document.getElementById('update-text');
             text.innerText = 'Update ready to install!';
             btn.classList.remove('hidden');
         });
-        
+
         function installUpdate() {
             ipcRenderer.send('trigger-update');
         }
-</script>
+    </script>
 </body>
+
 </html>

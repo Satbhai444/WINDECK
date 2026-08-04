@@ -6,31 +6,65 @@ const os = require('os');
 async function getStartMenuApps() {
     return new Promise((resolve) => {
         const script = `
-$apps = @()
-$paths = @(
-    "$env:ProgramData\\Microsoft\\Windows\\Start Menu\\Programs",
-    "$env:APPDATA\\Microsoft\\Windows\\Start Menu\\Programs"
-)
-$sh = New-Object -ComObject WScript.Shell
-foreach ($p in $paths) {
-    Get-ChildItem -Path $p -Filter "*.lnk" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 200 | ForEach-Object {
-        $lnk = $sh.CreateShortcut($_.FullName)
-        $target = [System.Environment]::ExpandEnvironmentVariables($lnk.TargetPath)
-        if ($target.EndsWith(".exe")) {
-            $apps += @{ name = $_.BaseName; path = $target }
-        }
-    }
-}
-$apps | ConvertTo-Json
-`;
+            $apps = @{}
+            $shell = New-Object -COM WScript.Shell
+            
+            # 1. Resolve Start Menu shortcuts (.lnk files) to get real .exe paths
+            $folders = @(
+                [Environment]::GetFolderPath('StartMenu'),
+                [Environment]::GetFolderPath('CommonStartMenu')
+            )
+            foreach ($f in $folders) {
+                if (Test-Path $f) {
+                    Get-ChildItem -Path $f -Filter *.lnk -Recurse -ErrorAction SilentlyContinue | ForEach-Object {
+                        $name = [System.IO.Path]::GetFileNameWithoutExtension($_.Name)
+                        try {
+                            $shortcut = $shell.CreateShortcut($_.FullName)
+                            $target = $shortcut.TargetPath
+                            if ($target -and (Test-Path $target) -and ($target.EndsWith('.exe'))) {
+                                $apps[$name] = @{
+                                    name = $name
+                                    path = $target
+                                    iconPath = $target
+                                }
+                            }
+                        } catch {}
+                    }
+                }
+            }
+
+            # 2. Get UWP & Store apps from Get-StartApps
+            Get-StartApps | ForEach-Object {
+                if (-not $apps.ContainsKey($_.Name)) {
+                    $apps[$_.Name] = @{
+                        name = $_.Name
+                        path = $_.AppID
+                        iconPath = $_.AppID
+                    }
+                }
+            }
+
+            $result = @()
+            foreach ($key in $apps.Keys) {
+                $result += [PSCustomObject]@{
+                    name = $apps[$key].name
+                    path = $apps[$key].path
+                    iconPath = $apps[$key].iconPath
+                }
+            }
+            $result | ConvertTo-Json -Compress
+        `;
         const buffer = Buffer.from(script, 'utf16le');
         const encoded = buffer.toString('base64');
-        exec('powershell -NoProfile -EncodedCommand ' + encoded, { maxBuffer: 1024 * 1024 * 10 }, (err, stdout) => {
+        exec('powershell -NoProfile -EncodedCommand ' + encoded, { maxBuffer: 1024 * 1024 * 20 }, (err, stdout) => {
             if (err) return resolve([]);
             try {
                 let list = JSON.parse(stdout);
                 if (!Array.isArray(list)) list = [list];
-                resolve(list.filter(a => a && a.name));
+                const formatted = list
+                    .filter(a => a && a.name && a.path && !a.name.startsWith('ms-resource:'))
+                    .sort((a, b) => a.name.localeCompare(b.name));
+                resolve(formatted);
             } catch (e) {
                 resolve([]);
             }
@@ -40,7 +74,8 @@ $apps | ConvertTo-Json
 
 async function extractIcon(exePath) {
     return new Promise((resolve, reject) => {
-        const outName = path.basename(exePath).replace('.exe', '.png');
+        const ext = path.extname(exePath);
+        const outName = path.basename(exePath, ext) + '.png';
         const outDir = path.join(os.tmpdir(), 'windeck_icons');
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir);
         const outPath = path.join(outDir, outName);

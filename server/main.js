@@ -17,12 +17,17 @@ function createWindow() {
         backgroundColor: '#0c0c0e',
         icon: path.join(__dirname, 'icon.png'),
         webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false
+            nodeIntegration: false,
+            contextIsolation: true,
+            sandbox: false,
+            preload: path.join(__dirname, 'preload.js')
         }
     });
 
     mainWindow.loadFile('desktop_ui.html');
+    mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+        console.log(`[Renderer] ${message} (line ${line})`);
+    });
 
     mainWindow.on('close', function (event) {
         if (!app.isQuitting) {
@@ -37,8 +42,8 @@ function createWindow() {
 
     // Start the WinDeck Server once the window is ready
     mainWindow.webContents.once('did-finish-load', () => {
-        // Start the server and register event callbacks
-        serverInstance = require('./server.js');
+        // Ensure serverInstance is set (may already be set from app.ready)
+        if (!serverInstance) serverInstance = require('./server.js');
         
         // Register connection changes and OTP updates
         serverInstance.onOtp((otp) => {
@@ -69,9 +74,24 @@ function createWindow() {
     });
 }
 
-app.on('ready', () => {
-    app.setAppUserModelId("com.windeck.app"); // Required for Windows Notifications
-    createWindow();
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+    app.quit();
+} else {
+    app.on('second-instance', (event, commandLine, workingDirectory) => {
+        if (mainWindow) {
+            if (mainWindow.isMinimized()) mainWindow.restore();
+            mainWindow.show();
+            mainWindow.focus();
+        }
+    });
+
+    app.on('ready', () => {
+        app.setAppUserModelId("com.windeck.app"); // Required for Windows Notifications
+        // Initialize server eagerly so IPC handlers never see a null serverInstance
+        try { serverInstance = require('./server.js'); } catch (e) { console.error('Server init failed:', e); }
+        createWindow();
     
     tray = new Tray(path.join(__dirname, 'icon.png')); // use the existing icon.png
     const contextMenu = Menu.buildFromTemplate([
@@ -185,3 +205,10 @@ ipcMain.on('send-file-to-phone', (event, filePath) => {
 ipcMain.on('trigger-update', () => {
     autoUpdater.quitAndInstall();
 });
+
+const systemControlsMod = require('./modules/systemControls');
+ipcMain.on('execute-system-action', (event, action) => {
+    systemControlsMod.executeAction(action);
+});
+}
+

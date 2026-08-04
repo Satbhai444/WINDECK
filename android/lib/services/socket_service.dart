@@ -1,5 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:crypto/crypto.dart';
+import 'package:encrypt/encrypt.dart' as enc;
 
 class SocketService {
   IO.Socket? _socket;
@@ -9,6 +13,35 @@ class SocketService {
   int _reconnectAttemptCount = 0;
   int get reconnectAttemptCount => _reconnectAttemptCount;
   void resetReconnectAttemptCount() { _reconnectAttemptCount = 0; }
+  enc.Key? _encryptionKey;
+
+  void _setEncryptionKey(String otp) {
+    final bytes = utf8.encode(otp + 'windeck_salt');
+    final hash = sha256.convert(bytes).bytes;
+    _encryptionKey = enc.Key(Uint8List.fromList(hash));
+  }
+
+  String _encryptData(dynamic data) {
+    if (_encryptionKey == null) return jsonEncode(data);
+    final iv = enc.IV.fromSecureRandom(16);
+    final encrypter = enc.Encrypter(enc.AES(_encryptionKey!, mode: enc.AESMode.cbc));
+    final encrypted = encrypter.encrypt(jsonEncode(data), iv: iv);
+    return '${iv.base16}:${encrypted.base16}'.toLowerCase();
+  }
+
+  dynamic _decryptData(dynamic payload) {
+    if (_encryptionKey == null || payload is! String || !payload.contains(':')) return payload;
+    try {
+      final parts = payload.split(':');
+      final iv = enc.IV.fromBase16(parts[0]);
+      final encrypter = enc.Encrypter(enc.AES(_encryptionKey!, mode: enc.AESMode.cbc));
+      final decrypted = encrypter.decrypt16(parts[1], iv: iv);
+      return jsonDecode(decrypted);
+    } catch (e) {
+      print('Decryption error: $e');
+      return payload;
+    }
+  }
 
   Future<bool> connect(
     String ip,
@@ -41,11 +74,11 @@ class SocketService {
 
     _socket?.onConnect((_) => onConnect());
     _socket?.onDisconnect((_) => onDisconnect());
-    _socket?.on('status', (data) => onStatus(Map<String, dynamic>.from(data)));
-    _socket?.on('media-update', (data) => onMediaUpdate(Map<String, dynamic>.from(data)));
-    _socket?.on('foreground-app-changed', (data) => onWindowUpdate(Map<String, dynamic>.from(data)));
-    _socket?.on('clipboard-update', (data) => onClipboardUpdate(data.toString()));
-    _socket?.on('file-offer', (data) => onFileOffer(data.toString()));
+    _socket?.on('status', (data) => onStatus(Map<String, dynamic>.from(_decryptData(data))));
+    _socket?.on('media-update', (data) => onMediaUpdate(Map<String, dynamic>.from(_decryptData(data))));
+    _socket?.on('foreground-app-changed', (data) => onWindowUpdate(Map<String, dynamic>.from(_decryptData(data))));
+    _socket?.on('clipboard-update', (data) => onClipboardUpdate(_decryptData(data).toString()));
+    _socket?.on('file-offer', (data) => onFileOffer(_decryptData(data).toString()));
 
     // Reconnection event listeners for Fix 2 (stale-IP fallback)
     _socket?.on('reconnect_attempt', (attemptNumber) {
@@ -99,7 +132,8 @@ class SocketService {
       onResult(success, error);
     });
 
-    _socket?.emit('authenticate', {'otp': otp, 'deviceName': deviceName, 'version': '1.1.0'});
+    _setEncryptionKey(otp);
+    _socket?.emit('authenticate', {'otp': otp, 'deviceName': deviceName, 'version': '1.2.0'});
 
     // Timeout for authentication
     Future.delayed(const Duration(seconds: 3), () {
@@ -111,11 +145,15 @@ class SocketService {
   }
 
   void emit(String event, dynamic data) {
-    _socket?.emit(event, data);
+    if (event == 'authenticate') {
+      _socket?.emit(event, data);
+    } else {
+      _socket?.emit(event, _encryptData(data));
+    }
   }
 
   void onSyncLayout(Function(List) callback) {
-    _socket?.on('sync-layout', (data) => callback(data as List));
+    _socket?.on('sync-layout', (data) => callback(_decryptData(data) as List));
   }
 
   /// Stop Socket.io's internal reconnection loop (for stale-IP fallback).

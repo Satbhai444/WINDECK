@@ -14,6 +14,12 @@ const fs = require('fs');
 const multer = require('multer');
 const { app: electronApp, clipboard, shell } = require('electron');
 
+const logFile = path.join(os.homedir(), 'windeck_debug.log');
+function logToFile(msg) {
+    fs.appendFileSync(logFile, `[${new Date().toISOString()}] ${msg}\n`);
+    // intentionally omitted console.log to avoid infinite recursion if replaced again
+}
+
 const app = express();
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -23,7 +29,7 @@ const io = new Server(server, { cors: { origin: '*' } });
 const PORT = 3000;
 const BROADCAST_PORT = 3001;
 const serverName = os.hostname();
-const SERVER_VERSION = '1.1.0';
+const SERVER_VERSION = '1.2.0';
 
 // Network & Encoding logic
 function getLocalIp() {
@@ -61,7 +67,7 @@ let lastPolledClipboard = '';
 function generateOTP() {
     currentOtp = Math.floor(100000 + Math.random() * 900000).toString();
     if (otpCallback) otpCallback(currentOtp);
-    console.log(`[OTP] Generated Pairing Code: ${currentOtp}`);
+    logToFile(`[OTP] Generated Pairing Code: ${currentOtp}`);
 }
 
 // UDP Broadcast for auto-discovery
@@ -106,7 +112,7 @@ function getBroadcastAddresses() {
 function startBroadcasting(roomName) {
     if (udpBroadcastInterval) clearInterval(udpBroadcastInterval);
     currentRoomName = roomName;
-    console.log(`[UDP] Broadcasting room '${currentRoomName}' on port ${BROADCAST_PORT}`);
+    logToFile(`[UDP] Broadcasting room '${currentRoomName}' on port ${BROADCAST_PORT}`);
     
     // Start mDNS advertisement
     if (bonjourService) {
@@ -114,7 +120,7 @@ function startBroadcasting(roomName) {
         bonjourService = null;
     }
     bonjourService = bonjour.publish({ name: currentRoomName, type: 'windeck', protocol: 'tcp', port: PORT });
-    console.log(`[mDNS] Advertising service _windeck._tcp on port ${PORT}`);
+    logToFile(`[mDNS] Advertising service _windeck._tcp on port ${PORT}`);
 
     udpBroadcastInterval = setInterval(() => {
         const message = Buffer.from(JSON.stringify({
@@ -178,7 +184,7 @@ app.post('/upload', upload.single('file'), (req, res) => {
         return res.status(400).send('No file uploaded');
     }
 
-    console.log(`[DropZone] File received: ${req.file.originalname}`);
+    logToFile(`[DropZone] File received: ${req.file.originalname}`);
     io.emit('file-received', { filename: req.file.originalname, path: req.file.path });
     
     // Reveal in Windows Explorer
@@ -234,21 +240,91 @@ app.get('/camera-view', (req, res) => {
 // Icon endpoint
 app.get('/icon', async (req, res) => {
     const exePath = req.query.path;
+    const name = req.query.name || 'App';
     if (!exePath) return res.status(400).send('Path required');
+    
+    // Check if path is an actual file
+    if (!fs.existsSync(exePath)) {
+        // Fallback to SVG letter icon for UWP apps or missing paths
+        const letter = name.charAt(0).toUpperCase();
+        const colors = ['#0078d4', '#e81123', '#22c55e', '#f59e0b', '#8b5cf6', '#ec4899'];
+        const color = colors[name.length % colors.length];
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" rx="12" fill="${color}"/><text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#ffffff">${letter}</text></svg>`;
+        res.setHeader('Content-Type', 'image/svg+xml');
+        return res.send(svg);
+    }
+
     try {
         const iconPath = await appDiscovery.extractIcon(exePath);
-        res.sendFile(iconPath);
+        if (fs.existsSync(iconPath)) {
+            res.sendFile(iconPath);
+        } else {
+            throw new Error("Icon extraction failed");
+        }
     } catch (e) {
-        res.status(500).send('Icon extraction failed');
+        // Fallback to SVG if extraction fails
+        const letter = name.charAt(0).toUpperCase();
+        const color = '#0078d4';
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" rx="12" fill="${color}"/><text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#ffffff">${letter}</text></svg>`;
+        res.setHeader('Content-Type', 'image/svg+xml');
+        res.send(svg);
     }
 });
 
 // Socket.io
 io.on('connection', (socket) => {
-    console.log('[Socket] Client connected, awaiting authentication:', socket.id);
+    logToFile('[Socket] Client connected, awaiting authentication:', socket.id);
     socket.authenticated = false;
 
-    // Handle authentication using OTP
+    // Handle authentication using OTP    // End-to-End Encryption Setup
+    const crypto = require('crypto');
+    const algorithm = 'aes-256-cbc';
+    const getEncryptionKey = () => crypto.createHash('sha256').update(currentOtp + 'windeck_salt').digest();
+
+    function encrypt(text) {
+        const iv = crypto.randomBytes(16);
+        const cipher = crypto.createCipheriv(algorithm, getEncryptionKey(), iv);
+        let encrypted = cipher.update(JSON.stringify(text), 'utf8', 'hex');
+        encrypted += cipher.final('hex');
+        return iv.toString('hex') + ':' + encrypted;
+    }
+
+    function decrypt(text) {
+        let textParts = text.split(':');
+        let iv = Buffer.from(textParts.shift(), 'hex');
+        let encryptedText = Buffer.from(textParts.join(':'), 'hex');
+        const decipher = crypto.createDecipheriv(algorithm, getEncryptionKey(), iv);
+        let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
+        decrypted += decipher.final('utf8');
+        return JSON.parse(decrypted);
+    }
+
+    const originalEmit = socket.emit;
+    socket.emit = function(eventName, ...args) {
+        if (eventName === 'authenticated' || eventName === 'auth_error' || eventName === 'unauthorized') {
+            return originalEmit.apply(this, [eventName, ...args]);
+        }
+        const encryptedArgs = args.map(arg => encrypt(arg));
+        return originalEmit.apply(this, [eventName, ...encryptedArgs]);
+    };
+
+    socket.use((packet, next) => {
+        const eventName = packet[0];
+        if (eventName === 'authenticate') return next();
+        
+        try {
+            for (let i = 1; i < packet.length; i++) {
+                if (typeof packet[i] === 'string' && packet[i].includes(':')) {
+                    packet[i] = decrypt(packet[i]);
+                }
+            }
+            next();
+        } catch (e) {
+            logToFile('Decryption failed for event:', eventName, e);
+            next(new Error('Decryption failed'));
+        }
+    });
+
     socket.on('authenticate', (data) => {
         const submittedOtp = typeof data === 'object' ? data.otp : data;
         const deviceName = typeof data === 'object' ? data.deviceName : 'Mobile Device';
@@ -256,7 +332,7 @@ io.on('connection', (socket) => {
 
         if (clientVersion !== SERVER_VERSION) {
             socket.emit('authenticated', { success: false, error: `Version mismatch. Server is ${SERVER_VERSION}, Client is ${clientVersion}. Please update.` });
-            console.log(`[Socket] Authentication failed for ${deviceName} (Version mismatch)`);
+            logToFile(`[Socket] Authentication failed for ${deviceName} (Version mismatch)`);
             socket.disconnect();
             return;
         }
@@ -270,7 +346,7 @@ io.on('connection', (socket) => {
             socket.deviceName = deviceName;
             
             socket.emit('authenticated', { success: true });
-            console.log(`[Socket] Client authenticated successfully: ${deviceName}`);
+            logToFile(`[Socket] Client authenticated successfully: ${deviceName}`);
             
             if (connectionCallback) connectionCallback(true, deviceName);
             
@@ -279,7 +355,7 @@ io.on('connection', (socket) => {
             sendLayout(socket);
         } else {
             socket.emit('authenticated', { success: false, error: 'Incorrect pairing code' });
-            console.log(`[Socket] Authentication failed for socket ${socket.id} (Submitted: '${cleanSubmitted}', Expected: '${cleanCurrent}')`);
+            logToFile(`[Socket] Authentication failed for socket ${socket.id} (Submitted: '${cleanSubmitted}', Expected: '${cleanCurrent}')`);
             socket.disconnect();
         }
     });
@@ -350,7 +426,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        console.log('[Socket] Client disconnected');
+        logToFile('[Socket] Client disconnected');
         if (socket === activeClientSocket) {
             activeClientSocket = null;
             if (connectionCallback) connectionCallback(false, null);
@@ -363,7 +439,7 @@ async function sendAppList(socket) {
         const apps = await appDiscovery.getStartMenuApps();
         socket.emit('app-list', apps);
     } catch (e) {
-        console.error('Error fetching apps:', e);
+        logToFile('Error fetching apps:', e);
     }
 }
 
@@ -377,7 +453,7 @@ function sendLayout(socket) {
             socket.emit('sync-layout', []);
         }
     } catch (err) {
-        console.error('Error reading layout for socket:', err);
+        logToFile('Error reading layout for socket:', err);
     }
 }
 
@@ -425,16 +501,14 @@ setInterval(() => {
 
 server.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
-        console.log(`[HTTP] Port ${PORT} is already in use. WinDeck server is already running.`);
+        logToFile(`[HTTP] Port ${PORT} is already in use. WinDeck server is already running.`);
     } else {
-        console.error('[HTTP] Server error:', err);
+        logToFile('[HTTP] Server error:', err);
     }
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-    console.log(`[HTTP] WinDeck Server listening on port ${PORT}`);
-    startMediaMonitor(io);
-    startWindowMonitor(io);
+    logToFile(`[HTTP] WinDeck Server listening on port ${PORT}`);
 });
 
 // Exports for Electron integration
@@ -467,9 +541,9 @@ module.exports = {
             const ip = getLocalIp();
             const downloadUrl = `http://${ip}:${PORT}/download-file?path=${encodeURIComponent(filePath)}`;
             activeClientSocket.emit('file-offer', downloadUrl);
-            console.log(`[DropZone] Sent file-offer to phone: ${downloadUrl}`);
+            logToFile(`[DropZone] Sent file-offer to phone: ${downloadUrl}`);
         } else {
-            console.log(`[DropZone] Cannot send file, no authenticated client connected.`);
+            logToFile(`[DropZone] Cannot send file, no authenticated client connected.`);
         }
     }
 };

@@ -16,7 +16,7 @@ enum ConnectionPhase {
   pairingRequired,   // Silent re-auth failed, user must re-enter OTP
 }
 
-class ConnectionProvider extends ChangeNotifier {
+class ConnectionProvider extends ChangeNotifier with WidgetsBindingObserver {
   bool _isConnected = false;
   int _cpuUsage = 0;
   int _ramUsage = 0;
@@ -45,7 +45,7 @@ class ConnectionProvider extends ChangeNotifier {
 
   // Fix 2: Timer for stale-IP detection
   Timer? _reconnectTimer;
-  static const _staleIpThreshold = Duration(seconds: 15);
+  static const _staleIpThreshold = Duration(seconds: 5);
 
   // Fix 2: Discovery service for fallback
   final DiscoveryService _discoveryService = DiscoveryService();
@@ -70,6 +70,22 @@ class ConnectionProvider extends ChangeNotifier {
   ConnectionProvider([this._navigatorKey]) {
     _loadSettings();
     _startClipboardPoller();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
+      if (_isConnected) {
+        consoleLog('App backgrounded, disconnecting socket to save battery.');
+        _socketService.disconnect();
+      }
+    } else if (state == AppLifecycleState.resumed) {
+      if (_hasConnectedBefore && !_isConnected && serverIp != 'localhost') {
+        consoleLog('App resumed, restoring connection...');
+        connect(serverIp, _socketService.serverPort ?? 3000);
+      }
+    }
   }
 
   void _startClipboardPoller() {
@@ -95,6 +111,13 @@ class ConnectionProvider extends ChangeNotifier {
     _clipboardSyncEnabled = prefs.getBool('windeck_clipboard_sync') ?? true;
     _autoSwitchEnabled = prefs.getBool('windeck_auto_switch') ?? true;
     _deviceName = prefs.getString('windeck_device_name') ?? 'Android Device';
+
+    _lastOtp = prefs.getString('windeck_last_otp');
+    _lastDeviceName = prefs.getString('windeck_last_device_name');
+    if (_lastOtp != null && _lastDeviceName != null) {
+      _hasConnectedBefore = true;
+    }
+
     notifyListeners();
   }
 
@@ -158,7 +181,8 @@ class ConnectionProvider extends ChangeNotifier {
   }
 
   Future<void> authenticate(String otp, String deviceName, Function(bool success, String? error) onResult) async {
-    _socketService.authenticate(otp, deviceName, (success, error) {
+    _socketService.authenticate(otp, deviceName, (success, error) async {
+      final prefs = await SharedPreferences.getInstance();
       if (success) {
         _isConnected = true;
         _lastOtp = otp;
@@ -166,11 +190,25 @@ class ConnectionProvider extends ChangeNotifier {
         _hasConnectedBefore = true;
         _connectionPhase = ConnectionPhase.connected;
 
+        await prefs.setString('windeck_last_otp', otp);
+        await prefs.setString('windeck_last_device_name', deviceName);
+
         // Gap 2: Reset reconnect counter on successful auth
         _socketService.resetReconnectAttemptCount();
         _reconnectTimer?.cancel();
         _reconnectTimer = null;
 
+        notifyListeners();
+      } else {
+        // Clear cached credentials so it doesn't get stuck in a silent reconnect loop
+        _isExplicitDisconnect = true; // Prevents _onSocketDisconnect from entering retrying state
+        _lastOtp = null;
+        _hasConnectedBefore = false;
+        _connectionPhase = ConnectionPhase.pairingRequired;
+        
+        await prefs.remove('windeck_last_otp');
+        await prefs.remove('windeck_last_device_name');
+        
         notifyListeners();
       }
       onResult(success, error);
@@ -187,12 +225,17 @@ class ConnectionProvider extends ChangeNotifier {
 
   /// User-initiated explicit disconnect (from "Disconnect?" dialog).
   /// Clears all cached credentials and resets to idle state.
-  void disconnectExplicitly() {
+  Future<void> disconnectExplicitly() async {
     _isExplicitDisconnect = true;
     _lastOtp = null;
     _lastDeviceName = null;
     _hasConnectedBefore = false;
     _connectionPhase = ConnectionPhase.idle;
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('windeck_last_otp');
+    await prefs.remove('windeck_last_device_name');
+
     _reconnectTimer?.cancel();
     _reconnectTimer = null;
     _discoveryService.stopDiscovery();
@@ -394,6 +437,7 @@ class ConnectionProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _reconnectTimer?.cancel();
     _discoveryService.stopDiscovery();
     super.dispose();

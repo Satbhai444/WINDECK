@@ -42,11 +42,6 @@ class _WinDeckAppState extends State<WinDeckApp> {
   }
 
   Future<void> _initializeApp() async {
-    // Request network, notification, or other professional permissions
-    Map<Permission, PermissionStatus> statuses = await [
-      Permission.notification,
-    ].request();
-
     final prefs = await SharedPreferences.getInstance();
     final introDone = prefs.getBool('windeck_intro_done') ?? false;
 
@@ -54,6 +49,75 @@ class _WinDeckAppState extends State<WinDeckApp> {
       _permissionsGranted = true;
       _showIntro = !introDone;
     });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _requestNotificationPermission());
+  }
+
+  Future<void> _requestNotificationPermission() async {
+    final status = await Permission.notification.status;
+    if (status.isGranted || status.isPermanentlyDenied) return;
+
+    final ctx = navigatorKey.currentContext;
+    if (ctx == null || !mounted) return;
+
+    await showDialog(
+      context: ctx,
+      barrierDismissible: false,
+      builder: (dialogCtx) => Dialog(
+        backgroundColor: const Color(0xFF161622),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        child: Padding(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 72, height: 72,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [const Color(0xFF0078d4).withValues(alpha: 0.2), const Color(0xFF0078d4).withValues(alpha: 0.05)],
+                    begin: Alignment.topLeft, end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFF0078d4).withValues(alpha: 0.3)),
+                ),
+                child: const Icon(Icons.notifications_active_rounded, color: Color(0xFF0078d4), size: 34),
+              ),
+              const SizedBox(height: 20),
+              const Text('Stay Connected', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
+              const SizedBox(height: 10),
+              Text(
+                'WinDeck uses notifications to alert you when your phone pairs, disconnects, or receives a file.',
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.55), fontSize: 13.5, height: 1.6),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 28),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    Navigator.pop(dialogCtx);
+                    await Permission.notification.request();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0078d4),
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    elevation: 0,
+                  ),
+                  child: const Text('Enable Notifications', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => Navigator.pop(dialogCtx),
+                child: Text('Maybe Later', style: TextStyle(color: Colors.white.withValues(alpha: 0.35), fontSize: 13)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override

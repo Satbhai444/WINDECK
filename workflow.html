@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WinDeck Workflows</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+    </script>
+    <style>
+        body { background-color: #0c0c0e; color: #ffffff; }
+        .mermaid { display: flex; justify-content: center; margin: 2rem 0; }
+    </style>
+</head>
+<body class="p-10 font-sans">
+
+    <div class="max-w-6xl mx-auto space-y-16">
+        
+        <!-- Header -->
+        <div class="text-center">
+            <h1 class="text-4xl font-bold text-[#0078d4] mb-4">WinDeck Complete Workflows</h1>
+            <p class="text-gray-400">Technical Architecture & User Experience Diagrams</p>
+        </div>
+
+        <!-- 1. Technical Flow: Windows PC Server -->
+        <div class="bg-white/5 rounded-2xl p-8 border border-white/10">
+            <h2 class="text-2xl font-bold mb-6 text-white border-b border-white/10 pb-4">1. Technical Flow: Windows PC App</h2>
+            <div class="mermaid">
+                flowchart TD
+                    A[Electron Launch main.js] --> B[Initialize Express & Socket.io on Port 3000]
+                    B --> C[Start UDP/mDNS Discovery]
+                    C --> D[Load preload.js Context Isolation]
+                    D --> E[Load desktop_ui.html Frontend]
+                    E --> F[Generate 6-Digit OTP]
+                    F --> G{Incoming Socket Connection}
+                    G -->|Authenticate| H{Is OTP Valid?}
+                    H -->|No| I[Reject Connection]
+                    H -->|Yes| J[Accept Connection & Setup AES-256 E2E]
+                    J --> K[Start Telemetry & Media Monitors]
+                    K --> L[Stream System Status to Phone]
+                    L --> M[Listen for incoming Macros/AirMouse/DropZone events]
+                    M --> N[Execute via systemControls / node IPC]
+            </div>
+        </div>
+
+        <!-- 2. Technical Flow: Android App -->
+        <div class="bg-white/5 rounded-2xl p-8 border border-white/10">
+            <h2 class="text-2xl font-bold mb-6 text-white border-b border-white/10 pb-4">2. Technical Flow: Android App</h2>
+            <div class="mermaid">
+                flowchart TD
+                    A[Flutter main.dart] --> B[Init ConnectionProvider]
+                    B --> C[Start UDP DiscoveryService]
+                    C --> D{PC Found on Network?}
+                    D -->|Yes| E[SocketService Connects]
+                    E --> F{Has Cached OTP?}
+                    F -->|Yes| G[Attempt Silent Re-auth]
+                    F -->|No| H[Wait for User OTP Input]
+                    H --> I[Emit 'authenticate' event]
+                    G --> I
+                    I --> J{Server Auth Response}
+                    J -->|Success| K[Derive AES-256 Key]
+                    K --> L[Initialize Encrypted Socket Channel]
+                    L --> M[Listen to status/media-update]
+                    M --> N[Route to UI Widgets]
+                    N --> O[WidgetsBindingObserver detects Background]
+                    O -->|Paused| P[Disconnect Socket to Save Battery]
+                    O -->|Resumed| Q[Reconnect & Silent Auth]
+            </div>
+        </div>
+
+        <!-- 3. User POV: Windows App -->
+        <div class="bg-white/5 rounded-2xl p-8 border border-white/10">
+            <h2 class="text-2xl font-bold mb-6 text-white border-b border-white/10 pb-4">3. User POV: Windows Desktop App</h2>
+            <div class="mermaid">
+                flowchart TD
+                    A([User Opens WinDeck.exe]) --> B{First Time Run?}
+                    B -->|Yes| C[Windows Firewall Prompts Network Access]
+                    C -->|User Allows| D[Dashboard Opens]
+                    B -->|No| D
+                    D --> E[Dashboard shows IP Address & 6-Digit OTP]
+                    E --> F[Status: 'Waiting for connection...']
+                    F --> G([Phone connects & enters OTP])
+                    G --> H[Status turns Green: 'Connected to Device X']
+                    H --> I[User can minimize app to System Tray]
+                    I --> J[User can right-click Tray to open Layout Editor]
+                    J --> K[User customizes grid layout & saves]
+                    K --> L[Changes sync instantly to connected phone]
+            </div>
+        </div>
+
+        <!-- 4. User POV: Android App -->
+        <div class="bg-white/5 rounded-2xl p-8 border border-white/10">
+            <h2 class="text-2xl font-bold mb-6 text-white border-b border-white/10 pb-4">4. User POV: Android Mobile App</h2>
+            <div class="mermaid">
+                flowchart TD
+                    A([User opens WinDeck App]) --> B[Shows 'Searching for PC...']
+                    B --> C{PC Auto-Discovered?}
+                    C -->|Yes| D[PC Name appears in list]
+                    C -->|No| E[User enters PC IP Manually]
+                    D --> F([User taps on PC Name])
+                    E --> F
+                    F --> G[Prompt: 'Enter 6-Digit Code displayed on PC']
+                    G --> H([User types Code])
+                    H --> I[Dashboard Interface Opens]
+                    I --> J{What does user want to do?}
+                    J -->|Launch App / Macro| K[Taps grid button -> PC reacts instantly]
+                    J -->|Control Volume| L[Taps Media Tab -> Uses sliders]
+                    J -->|Use AirMouse| M[Taps Mouse Tab -> Swipes screen to move PC cursor]
+                    J -->|Send File| N[Taps DropZone -> Selects Image -> Opens on PC]
+                    K --> O([User closes app / locks phone])
+                    O --> P[App goes to sleep to save battery]
+                    P --> Q([User opens app later])
+                    Q --> R[Auto-connects instantly without asking for Code]
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
