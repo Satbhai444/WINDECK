@@ -8,6 +8,9 @@ import 'screens/home_screen.dart';
 import 'screens/intro_screen.dart';
 import 'screens/settings_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'globals.dart';
+import 'services/update_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -45,12 +48,77 @@ class _WinDeckAppState extends State<WinDeckApp> {
     final prefs = await SharedPreferences.getInstance();
     final introDone = prefs.getBool('windeck_intro_done') ?? false;
 
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      Globals.appVersion = packageInfo.version;
+    } catch (e) {
+      // fallback
+    }
+
     setState(() {
       _permissionsGranted = true;
       _showIntro = !introDone;
     });
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => _requestNotificationPermission());
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _requestNotificationPermission();
+      _checkForUpdate();
+    });
+  }
+
+  Future<void> _checkForUpdate() async {
+    final service = UpdateService();
+    final update = await service.checkForUpdate();
+    if (update != null && mounted) {
+      final ctx = navigatorKey.currentContext;
+      if (ctx != null) {
+        _showUpdateDialog(ctx, update);
+      }
+    }
+  }
+
+  void _showUpdateDialog(BuildContext context, Map<String, dynamic> update) {
+    bool isDownloading = false;
+    double progress = 0.0;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: const Color(0xFF161622),
+          title: Text('Update Available: v${update['version']}', style: const TextStyle(color: Colors.white)),
+          content: isDownloading
+              ? Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Downloading update...', style: TextStyle(color: Colors.white70)),
+                    const SizedBox(height: 16),
+                    LinearProgressIndicator(value: progress, backgroundColor: Colors.white12, color: const Color(0xFF0078d4)),
+                  ],
+                )
+              : Text('A new version is available. Would you like to update now?\n\nChangelog:\n${update['changelog']}', style: const TextStyle(color: Colors.white70)),
+          actions: [
+            if (!isDownloading) TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Later', style: TextStyle(color: Colors.white54))),
+            if (!isDownloading) ElevatedButton(
+              onPressed: () async {
+                setDialogState(() => isDownloading = true);
+                try {
+                  await UpdateService().downloadAndInstallUpdate(update['downloadUrl'], (p) {
+                    setDialogState(() => progress = p);
+                  });
+                } catch (e) {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Update failed.')));
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0078d4)),
+              child: const Text('Update', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _requestNotificationPermission() async {

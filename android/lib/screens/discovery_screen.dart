@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:lottie/lottie.dart';
 import '../providers/connection_provider.dart';
 import '../services/discovery_service.dart';
+import '../globals.dart';
 import 'settings_screen.dart';
+
 
 class DiscoveryScreen extends StatefulWidget {
   const DiscoveryScreen({super.key});
@@ -473,6 +475,40 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
     );
   }
 
+  void _connectDirectly(Map<String, dynamic> data) async {
+    setState(() => _isLoading = true);
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(child: CircularProgressIndicator(color: Color(0xFF0078d4))),
+    );
+
+    final conn = context.read<ConnectionProvider>();
+    final connected = await conn.connect(data['ip'], data['port']);
+
+    if (!connected) {
+      if (mounted) {
+        Navigator.pop(context); // close loading dialog
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Connection failed. Please check Wi-Fi.')));
+      }
+      return;
+    }
+
+    conn.authenticate(data['otp'].toString(), 'Android Phone', (success, error) {
+      if (mounted) {
+        Navigator.pop(context); // close loading dialog
+        setState(() => _isLoading = false);
+        if (success) {
+          _showSuccessAnimation();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error ?? 'Pairing failed')));
+        }
+      }
+    });
+  }
+
   Future<bool> _onWillPop() async {
     return await showDialog(
       context: context,
@@ -682,7 +718,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                         ),
                 ),
                 const SizedBox(height: 16),
-                const Center(child: Text('v2.2.0', style: TextStyle(color: Colors.white30, fontSize: 10, letterSpacing: 1))),
+                Center(child: Text('v${Globals.appVersion}', style: const TextStyle(color: Colors.white30, fontSize: 10, letterSpacing: 1))),
               ],
             ),
           ),

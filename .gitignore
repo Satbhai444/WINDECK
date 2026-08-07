@@ -1,2 +1,8 @@
 Releases/
 node_modules/
+server/dist-final/
+server/dist/
+Releases-windeck.zip
+*.exe
+*.apk
+*.zip

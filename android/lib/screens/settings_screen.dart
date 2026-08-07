@@ -4,6 +4,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../globals.dart';
 import '../providers/connection_provider.dart';
 import '../providers/pages_provider.dart';
 import '../services/update_service.dart';
@@ -184,7 +185,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(conn.deviceName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
-                        Text('v$_version · ${conn.isConnected ? "Connected" : "Not Connected"}',
+                        Text('v${Globals.appVersion} · ${conn.isConnected ? "Connected" : "Not Connected"}',
                             style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12)),
                       ],
                     ),
@@ -225,7 +226,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             const SizedBox(height: 24),
             Center(
-              child: Text('WinDeck v$_version · Made with ❤️ for Windows', style: TextStyle(color: Colors.white.withValues(alpha: 0.2), fontSize: 11)),
+              child: Text('WinDeck v${Globals.appVersion} · Made with ❤️ for Windows', style: TextStyle(color: Colors.white.withValues(alpha: 0.2), fontSize: 11)),
             ),
           ],
         ),
@@ -853,7 +854,8 @@ class SettingsAboutScreen extends StatelessWidget {
         ),
 
         const SizedBox(height: 16),
-        Center(child: Text('WinDeck v2.2.0 · © 2025 Darshan Satbhai', style: TextStyle(color: Colors.white.withValues(alpha: 0.2), fontSize: 11))),
+        Center(child: Text('WinDeck v${Globals.appVersion} · © 2026 Darshan Satbhai', style: TextStyle(color: Colors.white.withValues(alpha: 0.2), fontSize: 11))),
+        const SizedBox(height: 24),
       ],
     );
   }

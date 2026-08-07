@@ -42,22 +42,6 @@ function createWindow() {
 
     // Start the WinDeck Server once the window is ready
     mainWindow.webContents.once('did-finish-load', () => {
-        // Ensure serverInstance is set (may already be set from app.ready)
-        if (!serverInstance) serverInstance = require('./server.js');
-        
-        // Register connection changes and OTP updates
-        serverInstance.onOtp((otp) => {
-            if (mainWindow) mainWindow.webContents.send('otp-update', otp);
-        });
-
-        serverInstance.onClientConnection((connected, deviceName) => {
-            if (mainWindow) mainWindow.webContents.send('connection-status', { connected, deviceName });
-        });
-
-        serverInstance.onTelemetry((data) => {
-            if (mainWindow) mainWindow.webContents.send('telemetry-update', data);
-        });
-        
         // Auto Updater Events
         autoUpdater.on('update-available', (info) => {
             if (mainWindow) mainWindow.webContents.send('update-available', info);
@@ -70,7 +54,14 @@ function createWindow() {
         });
         
         // Check for updates
-        autoUpdater.checkForUpdatesAndNotify();
+        try {
+            autoUpdater.checkForUpdatesAndNotify().catch(err => {
+                console.error('Update check failed:', err);
+                if (mainWindow) mainWindow.webContents.send('update-error', err.message);
+            });
+        } catch (e) {
+            console.error('Update check sync error:', e);
+        }
     });
 }
 
@@ -90,7 +81,24 @@ if (!gotTheLock) {
     app.on('ready', () => {
         app.setAppUserModelId("com.windeck.app"); // Required for Windows Notifications
         // Initialize server eagerly so IPC handlers never see a null serverInstance
-        try { serverInstance = require('./server.js'); } catch (e) { console.error('Server init failed:', e); }
+        try { 
+            serverInstance = require('./server.js'); 
+            
+            // Register connection changes and OTP updates BEFORE creating window
+            serverInstance.onOtp((otp) => {
+                if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('otp-update', otp);
+            });
+
+            serverInstance.onClientConnection((connected, deviceName) => {
+                if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('connection-status', { connected, deviceName });
+            });
+
+            serverInstance.onTelemetry((data) => {
+                if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('telemetry-update', data);
+            });
+        } catch (e) { 
+            console.error('Server init failed:', e); 
+        }
         createWindow();
     
     tray = new Tray(path.join(__dirname, 'icon.png')); // use the existing icon.png

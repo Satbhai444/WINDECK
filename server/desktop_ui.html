@@ -114,7 +114,7 @@
             </div>
             <span class="text-sm font-bold tracking-tight">win<span class="text-[#0078d4]">deck</span></span>
             <span
-                class="text-[9px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white/40 ml-1">v2.2.0</span>
+                class="text-[9px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white/40 ml-1">v2.3.6</span>
         </div>
         <div class="flex items-center gap-1">
             <button onclick="minimizeApp()"
@@ -178,7 +178,7 @@
             <div class="mt-auto mb-4 px-2 w-full">
                 <div class="text-center sm:text-left sm:pl-3">
                     <span class="text-[10px] text-white/30 font-bold uppercase tracking-widest block">Version</span>
-                    <span class="text-[11px] text-white/50 font-medium">v2.2.0</span>
+                    <span class="text-[11px] text-white/50 font-medium">v2.3.6</span>
                 </div>
             </div>
         </div>
@@ -231,17 +231,17 @@
                             </div>
                         </div>
 
-                        <div class="flex flex-col items-center justify-center py-6 mb-2">
-                            <span
-                                class="text-[10px] uppercase tracking-widest text-white/40 font-bold block mb-2">Pairing
-                                Code</span>
-                            <div class="relative">
-                                <div class="absolute inset-0 bg-[#0078d4] opacity-20 blur-2xl rounded-full"></div>
-                                <span id="otp-display"
-                                    class="relative z-10 text-5xl font-bold tracking-[0.2em] mono text-white leading-none pl-[0.2em] drop-shadow-[0_0_15px_rgba(0,120,212,0.5)]">------</span>
-                            </div>
-                        </div>
+                          <div class="flex flex-col items-center justify-center py-6 mb-2">
+                              <span class="text-[10px] uppercase tracking-widest text-white/40 font-bold block mb-2">Pairing Code</span>
+                              <div class="relative">
+                                  <div class="absolute inset-0 bg-[#0078d4] opacity-20 blur-2xl rounded-full"></div>
+                                  <span id="otp-display" class="relative z-10 text-5xl font-bold tracking-[0.2em] mono text-white leading-none pl-[0.2em] drop-shadow-[0_0_15px_rgba(0,120,212,0.5)]">------</span>
+                              </div>
+                          </div>
+                    </div>
 
+                    <!-- Side Panel -->
+                    <div class="flex flex-col">
                         <div
                             class="flex items-center justify-between bg-white/5 border border-white/5 rounded-xl p-3 mb-6">
                             <span class="text-xs text-white/50">Manual Room ID</span>
@@ -568,7 +568,7 @@
                         </div>
                         <div class="flex flex-col">
                             <span class="text-lg font-bold text-white">WinDeck (Desktop)</span>
-                            <span class="text-sm text-white/50">v2.2.0</span>
+                            <span class="text-sm text-white/50">v2.3.6</span>
                         </div>
                     </div>
                     <p class="text-sm text-white/60 leading-relaxed mb-6">
@@ -873,7 +873,7 @@
                     </div>
 
                     <div class="border-t border-white/5 pt-4 mt-4 flex items-center justify-between">
-                        <div class="text-xs text-white/30">WinDeck v2.2.0 · Made with ❤️ for Windows</div>
+                        <div class="text-xs text-white/30">WinDeck v2.3.6 · Made with ❤️ for Windows</div>
                         <div class="text-xs text-white/20">© 2025 WinDeck</div>
                     </div>
                 </div>
@@ -1156,7 +1156,7 @@
             loadNotifPrefs();
             initWebPresets();
 
-            // Check and show What's New modal for v2.2.0
+            // Check and show What's New modal for v2.3.6
             if (localStorage.getItem('shown_v1_2_whatsnew') !== 'true') {
                 document.getElementById('whats-new-modal').classList.remove('hidden');
             }
@@ -1257,8 +1257,9 @@
             document.getElementById('encoded-room-id').innerText = roomId;
         });
 
-        ipcRenderer.on('otp-update', (event, otp) => {
-            document.getElementById('otp-display').innerText = otp.slice(0, 3) + ' ' + otp.slice(3);
+        ipcRenderer.on('otp-update', (event, otpData) => {
+            let otpStr = typeof otpData === 'string' ? otpData : (otpData.otp || otpData);
+            document.getElementById('otp-display').innerText = otpStr.slice(0, 3) + ' ' + otpStr.slice(3);
         });
 
         ipcRenderer.on('connection-status', (event, status) => {

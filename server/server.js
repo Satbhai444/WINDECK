@@ -14,6 +14,7 @@ const fs = require('fs');
 const multer = require('multer');
 const { app: electronApp, clipboard, shell } = require('electron');
 
+
 const logFile = path.join(os.homedir(), 'windeck_debug.log');
 function logToFile(msg) {
     fs.appendFileSync(logFile, `[${new Date().toISOString()}] ${msg}\n`);
@@ -29,7 +30,7 @@ const io = new Server(server, { cors: { origin: '*' } });
 const PORT = 3000;
 const BROADCAST_PORT = 3001;
 const serverName = os.hostname();
-const SERVER_VERSION = '2.2.0';
+const SERVER_VERSION = '2.3.6';
 
 // Network & Encoding logic
 function getLocalIp() {
@@ -66,8 +67,11 @@ let lastPolledClipboard = '';
 
 function generateOTP() {
     currentOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    if (otpCallback) otpCallback(currentOtp);
     logToFile(`[OTP] Generated Pairing Code: ${currentOtp}`);
+    
+    if (otpCallback) {
+        otpCallback(currentOtp);
+    }
 }
 
 // UDP Broadcast for auto-discovery

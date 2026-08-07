@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart' as enc;
+import '../globals.dart';
 
 class SocketService {
   IO.Socket? _socket;
@@ -133,7 +134,7 @@ class SocketService {
     });
 
     _setEncryptionKey(otp);
-    _socket?.emit('authenticate', {'otp': otp, 'deviceName': deviceName, 'version': '2.2.0'});
+    _socket?.emit('authenticate', {'otp': otp, 'deviceName': deviceName, 'version': Globals.appVersion});
 
     // Timeout for authentication
     Future.delayed(const Duration(seconds: 3), () {
