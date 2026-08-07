@@ -1,6 +1,6 @@
 {
   "name": "server",
-  "version": "1.0.0",
+  "version": "2.2.0",
   "description": "",
   "main": "main.js",
   "scripts": {
@@ -13,7 +13,7 @@
     "appId": "com.windeck.server",
     "productName": "WinDeck Server",
     "directories": {
-      "output": "dist"
+      "output": "dist-final"
     },
     "win": {
       "target": "nsis"

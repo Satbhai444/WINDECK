@@ -114,7 +114,7 @@
             </div>
             <span class="text-sm font-bold tracking-tight">win<span class="text-[#0078d4]">deck</span></span>
             <span
-                class="text-[9px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white/40 ml-1">v1.2.0</span>
+                class="text-[9px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white/40 ml-1">v2.2.0</span>
         </div>
         <div class="flex items-center gap-1">
             <button onclick="minimizeApp()"
@@ -178,7 +178,7 @@
             <div class="mt-auto mb-4 px-2 w-full">
                 <div class="text-center sm:text-left sm:pl-3">
                     <span class="text-[10px] text-white/30 font-bold uppercase tracking-widest block">Version</span>
-                    <span class="text-[11px] text-white/50 font-medium">v1.2.0</span>
+                    <span class="text-[11px] text-white/50 font-medium">v2.2.0</span>
                 </div>
             </div>
         </div>
@@ -267,7 +267,7 @@
                         </div>
                     </div>
 
-                    <!-- Telemetry & System Info -->
+                    <!-- PC to Phone DropZone & Device Info -->
                     <div class="flex flex-col gap-6">
 
                         <!-- PC to Phone DropZone -->
@@ -378,7 +378,7 @@
                                 <button onclick="prevPage()" class="p-1 text-white/50 hover:text-white">&larr;</button>
                                 <div class="flex gap-2 items-center">
                                     <input type="text" id="page-name-input" onchange="updatePageName()"
-                                        class="bg-transparent text-center text-sm font-bold text-white border-b border-white/20 focus:outline-none focus:border-[#0078d4] w-24">
+                                        class="bg-transparent text-center text-sm font-bold text-white border-b border-white/20 focus:outline-none focus:border-[#0078d4] w-32 px-1">
                                     <button onclick="deleteCurrentPage()"
                                         class="text-red-400 hover:text-red-300 text-xs px-2"
                                         title="Delete Page">🗑</button>
@@ -494,12 +494,11 @@
 
                         <!-- Search Bar -->
                         <div class="mb-4 shrink-0 relative flex items-center">
-                            <i data-lucide="search"
-                                class="absolute left-3 w-4 h-4 text-white/40 pointer-events-none"></i>
-                            <input type="text" id="asset-search" oninput="filterAssets()"
-                                placeholder="Search apps, controls, websites..."
-                                class="w-full bg-black/30 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#0078d4] transition-colors shadow-inner">
-                        </div>
+    <i data-lucide="search" class="absolute left-3 w-4 h-4 text-white/40 pointer-events-none"></i>
+    <input type="text" id="asset-search" oninput="filterAssets()"
+    placeholder="Search Apps, Websites..."
+    class="w-full bg-black/30 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#0078d4] transition-colors shadow-inner box-border">
+</div>
 
                         <div id="asset-list-apps"
                             class="asset-list flex-1 overflow-y-auto grid grid-cols-3 gap-3 auto-rows-max pr-2">
@@ -542,8 +541,22 @@
             <div id="view-settings" class="view-section flex-col gap-6 max-w-2xl">
                 <h1 class="text-2xl font-bold text-white mb-2">Settings</h1>
 
+                
+                <!-- PAGES MANAGEMENT -->
+                <div class="glass-panel p-6 rounded-3xl border border-white/5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-purple-400">Pages Management</h3>
+                        <button onclick="addNewPage(); showSettings();" class="text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg transition-colors font-medium">Add Page</button>
+                    </div>
+                    <p class="text-xs text-white/40 mb-4">Drag to reorder. Edit names directly.</p>
+                    <div id="settings-pages-list" class="space-y-2 max-h-60 overflow-y-auto pr-2">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
                 <div class="glass-panel p-6 rounded-3xl border border-white/5">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-[#0078d4] mb-4">About WinDeck Server</h3>
+
                     <div class="flex items-center gap-4 mb-4">
                         <div
                             class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0078d4] to-blue-600 flex items-center justify-center shadow-lg">
@@ -555,7 +568,7 @@
                         </div>
                         <div class="flex flex-col">
                             <span class="text-lg font-bold text-white">WinDeck (Desktop)</span>
-                            <span class="text-sm text-white/50">v1.2.0</span>
+                            <span class="text-sm text-white/50">v2.2.0</span>
                         </div>
                     </div>
                     <p class="text-sm text-white/60 leading-relaxed mb-6">
@@ -860,7 +873,7 @@
                     </div>
 
                     <div class="border-t border-white/5 pt-4 mt-4 flex items-center justify-between">
-                        <div class="text-xs text-white/30">WinDeck v1.2.0 · Made with ❤️ for Windows</div>
+                        <div class="text-xs text-white/30">WinDeck v2.2.0 · Made with ❤️ for Windows</div>
                         <div class="text-xs text-white/20">© 2025 WinDeck</div>
                     </div>
                 </div>
@@ -1143,7 +1156,7 @@
             loadNotifPrefs();
             initWebPresets();
 
-            // Check and show What's New modal for v1.2.0
+            // Check and show What's New modal for v2.2.0
             if (localStorage.getItem('shown_v1_2_whatsnew') !== 'true') {
                 document.getElementById('whats-new-modal').classList.remove('hidden');
             }
@@ -1281,14 +1294,7 @@
             }
         });
 
-        ipcRenderer.on('telemetry-update', (event, data) => {
-            if (!serverStarted) return;
-            document.getElementById('stat-cpu').innerText = data.cpuUsage;
-            document.getElementById('bar-cpu').style.width = data.cpuUsage + '%';
-
-            document.getElementById('stat-ram').innerText = data.ramUsage;
-            document.getElementById('bar-ram').style.width = data.ramUsage + '%';
-        });
+        
 
         // -----------------------------------------
         // Editor Logic
@@ -1829,7 +1835,134 @@
         function installUpdate() {
             ipcRenderer.send('trigger-update');
         }
+    
+    // Animated Search Placeholder
+    function animateSearchPlaceholder() {
+        const searchInput = document.getElementById('asset-search');
+        if (!searchInput) return;
+        const placeholders = ['Search Instagram...', 'Search YouTube...', 'Search VS Code...', 'Search Chrome...'];
+        let idx = 0;
+        setInterval(() => {
+            idx = (idx + 1) % placeholders.length;
+            searchInput.placeholder = placeholders[idx];
+        }, 3000);
+    }
+    animateSearchPlaceholder();
+
+        // --- Pages Management Logic ---
+        let draggedPageIdx = null;
+
+        function renderSettingsPages() {
+            const list = document.getElementById('settings-pages-list');
+            if (!list) return;
+            list.innerHTML = '';
+            layoutData.forEach((page, i) => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center gap-3 p-2 bg-white/5 border border-white/5 rounded-xl transition-colors hover:bg-white/10 group';
+                item.draggable = true;
+                item.ondragstart = (e) => {
+                    draggedPageIdx = i;
+                    e.dataTransfer.effectAllowed = 'move';
+                    item.classList.add('opacity-50');
+                };
+                item.ondragover = (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                };
+                item.ondrop = (e) => {
+                    e.preventDefault();
+                    if (draggedPageIdx !== null && draggedPageIdx !== i) {
+                        const draggedPage = layoutData[draggedPageIdx];
+                        layoutData.splice(draggedPageIdx, 1);
+                        layoutData.splice(i, 0, draggedPage);
+                        // Fix current page index if it moved
+                        if (currentPageIndex === draggedPageIdx) currentPageIndex = i;
+                        else if (draggedPageIdx < currentPageIndex && i >= currentPageIndex) currentPageIndex--;
+                        else if (draggedPageIdx > currentPageIndex && i <= currentPageIndex) currentPageIndex++;
+                        
+                        renderSettingsPages();
+                        renderEditor();
+                        saveLayout(); // Auto-save on reorder
+                    }
+                };
+                item.ondragend = () => {
+                    draggedPageIdx = null;
+                    item.classList.remove('opacity-50');
+                };
+
+                item.innerHTML = `
+                    <div class="cursor-grab text-white/30 hover:text-white px-2 py-1">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="4" y1="8" x2="20" y2="8"></line>
+                            <line x1="4" y1="16" x2="20" y2="16"></line>
+                        </svg>
+                    </div>
+                    <input type="text" value="${page.name}" onchange="updateSettingsPageName(${i}, this.value)"
+                        class="flex-1 bg-transparent text-sm font-medium text-white focus:outline-none focus:border-b border-white/20 transition-colors">
+                    <button onclick="deleteSettingsPage(${i})" class="text-red-400/50 hover:text-red-400 p-2 transition-colors ${layoutData.length <= 1 ? 'hidden' : ''}">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function updateSettingsPageName(idx, newName) {
+            layoutData[idx].name = newName;
+            renderEditor();
+            saveLayout();
+        }
+
+        function deleteSettingsPage(idx) {
+            if (layoutData.length <= 1) return;
+            if (confirm('Delete page "' + layoutData[idx].name + '"?')) {
+                layoutData.splice(idx, 1);
+                if (currentPageIndex >= layoutData.length) currentPageIndex = layoutData.length - 1;
+                renderSettingsPages();
+                renderEditor();
+                saveLayout();
+            }
+        }
+
+        // Hook renderSettingsPages into showSettings
+        const originalShowSettings = showSettings;
+        window.showSettings = function() {
+            originalShowSettings();
+            renderSettingsPages();
+        };
+
+        // Make updatePageName save layout automatically
+        const originalUpdatePageName = updatePageName;
+        window.updatePageName = function() {
+            originalUpdatePageName();
+            saveLayout();
+            renderSettingsPages();
+        };
+
+        // Fix deleteCurrentPage auto-save
+        const originalDeleteCurrentPage = deleteCurrentPage;
+        window.deleteCurrentPage = function() {
+            if (layoutData.length <= 1) return alert('Cannot delete the last page.');
+            if (confirm('Delete this page?')) {
+                layoutData.splice(currentPageIndex, 1);
+                if (currentPageIndex > 0) currentPageIndex--;
+                renderEditor();
+                renderSettingsPages();
+                saveLayout();
+            }
+        };
+
+        // Override addNewPage to auto-save and update settings
+        const originalAddNewPage = addNewPage;
+        window.addNewPage = function() {
+            layoutData.push(createDefaultPage("New Page", "custom"));
+            currentPageIndex = layoutData.length - 1;
+            renderEditor();
+            renderSettingsPages();
+            saveLayout();
+        };
     </script>
 </body>
-
 </html>

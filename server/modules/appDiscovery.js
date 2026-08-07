@@ -1,70 +1,37 @@
-const { exec } = require('child_process');
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
+const { exec, execFile } = require('child_process');
 const os = require('os');
 
-async function getStartMenuApps() {
-    return new Promise((resolve) => {
+function getStartMenuApps() {
+    return new Promise((resolve, reject) => {
         const script = `
-            $apps = @{}
-            $shell = New-Object -COM WScript.Shell
-            
-            # 1. Resolve Start Menu shortcuts (.lnk files) to get real .exe paths
-            $folders = @(
-                [Environment]::GetFolderPath('StartMenu'),
-                [Environment]::GetFolderPath('CommonStartMenu')
-            )
-            foreach ($f in $folders) {
-                if (Test-Path $f) {
-                    Get-ChildItem -Path $f -Filter *.lnk -Recurse -ErrorAction SilentlyContinue | ForEach-Object {
-                        $name = [System.IO.Path]::GetFileNameWithoutExtension($_.Name)
-                        try {
-                            $shortcut = $shell.CreateShortcut($_.FullName)
-                            $target = $shortcut.TargetPath
-                            if ($target -and (Test-Path $target) -and ($target.EndsWith('.exe'))) {
-                                $apps[$name] = @{
-                                    name = $name
-                                    path = $target
-                                    iconPath = $target
-                                }
-                            }
-                        } catch {}
-                    }
-                }
-            }
-
-            # 2. Get UWP & Store apps from Get-StartApps
-            Get-StartApps | ForEach-Object {
-                if (-not $apps.ContainsKey($_.Name)) {
-                    $apps[$_.Name] = @{
-                        name = $_.Name
-                        path = $_.AppID
-                        iconPath = $_.AppID
-                    }
-                }
-            }
-
-            $result = @()
-            foreach ($key in $apps.Keys) {
-                $result += [PSCustomObject]@{
-                    name = $apps[$key].name
-                    path = $apps[$key].path
-                    iconPath = $apps[$key].iconPath
-                }
-            }
-            $result | ConvertTo-Json -Compress
-        `;
+$paths = @(
+    "$env:ProgramData\\Microsoft\\Windows\\Start Menu\\Programs",
+    "$env:APPDATA\\Microsoft\\Windows\\Start Menu\\Programs"
+)
+$apps = @()
+foreach ($p in $paths) {
+    if (Test-Path $p) {
+        $apps += Get-ChildItem -Path $p -Filter "*.lnk" -Recurse | Where-Object { 
+            $_.Name -notmatch "Uninstall" -and $_.Name -notmatch "Help"
+        } | Select-Object -Property @{Name="name";Expression={$_.BaseName}}, @{Name="path";Expression={$_.FullName}}
+    }
+}
+$uwp = Get-StartApps | Select-Object -Property @{Name="name";Expression={$_.Name}}, @{Name="path";Expression={$_.AppID}}
+$all = $apps + $uwp | Sort-Object -Property name -Unique
+$all | ConvertTo-Json
+`;
         const buffer = Buffer.from(script, 'utf16le');
         const encoded = buffer.toString('base64');
-        exec('powershell -NoProfile -EncodedCommand ' + encoded, { maxBuffer: 1024 * 1024 * 20 }, (err, stdout) => {
-            if (err) return resolve([]);
+        exec('powershell -NoProfile -EncodedCommand ' + encoded, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout) => {
+            if (error) {
+                console.error("Error fetching apps:", error);
+                return resolve([]);
+            }
             try {
-                let list = JSON.parse(stdout);
-                if (!Array.isArray(list)) list = [list];
-                const formatted = list
-                    .filter(a => a && a.name && a.path && !a.name.startsWith('ms-resource:'))
-                    .sort((a, b) => a.name.localeCompare(b.name));
-                resolve(formatted);
+                const parsed = JSON.parse(stdout);
+                resolve(Array.isArray(parsed) ? parsed : [parsed]);
             } catch (e) {
                 resolve([]);
             }
@@ -82,66 +49,59 @@ async function extractIcon(exePath) {
         
         if (fs.existsSync(outPath)) return resolve(outPath);
 
-        const script = `
-Add-Type -AssemblyName System.Drawing
-$code = @"
-using System;
-using System.Runtime.InteropServices;
-using System.Drawing;
-
-public class IconExt {
-    [DllImport("shell32.dll", CharSet = CharSet.Auto)]
-    public static extern int SHDefExtractIcon(string pszIconFile, int iIndex, uint uFlags, out IntPtr phiconLarge, out IntPtr phiconSmall, uint nIconSize);
-    
-    [DllImport("user32.dll", SetLastError = true)]
-    public static extern bool DestroyIcon(IntPtr hIcon);
-
-    public static void Extract(string path, string outPath) {
-        IntPtr hLarge, hSmall;
-        // Request 256x256 (Jumbo) icon using MAKELONG(256, 256)
-        int res = SHDefExtractIcon(path, 0, 0, out hLarge, out hSmall, 16777472);
-        if (hLarge != IntPtr.Zero) {
-            using (Icon icon = Icon.FromHandle(hLarge)) {
-                using (Bitmap bmp = icon.ToBitmap()) {
-                    bmp.Save(outPath, System.Drawing.Imaging.ImageFormat.Png);
+        // UWP App (has '!' in AppID)
+        if (exePath.includes('!')) {
+            const script = `
+$appId = '${exePath}'
+try {
+    $baseId = $appId.Split('_')[0]
+    $searchName = $baseId.Split('.')[-1]
+    $pkg = Get-AppxPackage -Name "*$searchName*" -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($pkg) {
+        $manifestPath = Join-Path $pkg.InstallLocation "AppxManifest.xml"
+        if (Test-Path $manifestPath) {
+            [xml]$manifest = Get-Content $manifestPath -ErrorAction SilentlyContinue
+            $logo = $manifest.Package.Properties.Logo
+            if ($logo) {
+                $logoPath = Join-Path $pkg.InstallLocation $logo
+                if (Test-Path $logoPath) {
+                    Copy-Item $logoPath -Destination '${outPath}' -Force
+                    return
                 }
-            }
-            DestroyIcon(hLarge);
-        } else {
-            using (Icon icon = Icon.ExtractAssociatedIcon(path)) {
-                using (Bitmap bmp = icon.ToBitmap()) {
-                    bmp.Save(outPath, System.Drawing.Imaging.ImageFormat.Png);
+                $logoBase = [System.IO.Path]::GetFileNameWithoutExtension($logo)
+                $logoDir = [System.IO.Path]::GetDirectoryName((Join-Path $pkg.InstallLocation $logo))
+                if (Test-Path $logoDir) {
+                    $matches = Get-ChildItem -Path $logoDir -Filter "$logoBase*.png" | Select-Object -First 1
+                    if ($matches) {
+                        Copy-Item $matches.FullName -Destination '${outPath}' -Force
+                        return
+                    }
                 }
             }
         }
-        if (hSmall != IntPtr.Zero) DestroyIcon(hSmall);
     }
-}
-"@
-try {
-    Add-Type -TypeDefinition $code -ReferencedAssemblies System.Drawing -ErrorAction SilentlyContinue
 } catch {}
-try {
-    [IconExt]::Extract('${exePath}', '${outPath}')
-} catch {
-    # Fallback to basic extraction
-    try {
-        $icon = [System.Drawing.Icon]::ExtractAssociatedIcon('${exePath}')
-        if ($icon) {
-            $bmp = $icon.ToBitmap()
-            $bmp.Save('${outPath}', [System.Drawing.Imaging.ImageFormat]::Png)
-            $bmp.Dispose()
-            $icon.Dispose()
-        }
-    } catch {}
-}
 `;
-        const buffer = Buffer.from(script, 'utf16le');
-        const encoded = buffer.toString('base64');
-        exec('powershell -NoProfile -EncodedCommand ' + encoded, (err) => {
-            if (err) return reject(err);
-            resolve(outPath);
-        });
+            const buffer = Buffer.from(script, 'utf16le');
+            const encoded = buffer.toString('base64');
+            exec('powershell -NoProfile -EncodedCommand ' + encoded, (err) => {
+                if (err) return reject(err);
+                resolve(outPath);
+            });
+            return;
+        }
+
+        // Win32 App (using our fast C# extractor)
+        const extractorPath = path.join(__dirname, '..', 'icon_extractor.exe');
+        if (fs.existsSync(extractorPath)) {
+            execFile(extractorPath, [exePath, outPath], (err) => {
+                if (err) return reject(err);
+                resolve(outPath);
+            });
+        } else {
+            // Fallback if extractor doesn't exist
+            reject(new Error("icon_extractor.exe not found"));
+        }
     });
 }
 

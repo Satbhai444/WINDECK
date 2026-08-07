@@ -853,7 +853,7 @@ class SettingsAboutScreen extends StatelessWidget {
         ),
 
         const SizedBox(height: 16),
-        Center(child: Text('WinDeck v1.2.0 · © 2025 Darshan Satbhai', style: TextStyle(color: Colors.white.withValues(alpha: 0.2), fontSize: 11))),
+        Center(child: Text('WinDeck v2.2.0 · © 2025 Darshan Satbhai', style: TextStyle(color: Colors.white.withValues(alpha: 0.2), fontSize: 11))),
       ],
     );
   }

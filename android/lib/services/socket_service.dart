@@ -133,7 +133,7 @@ class SocketService {
     });
 
     _setEncryptionKey(otp);
-    _socket?.emit('authenticate', {'otp': otp, 'deviceName': deviceName, 'version': '1.2.0'});
+    _socket?.emit('authenticate', {'otp': otp, 'deviceName': deviceName, 'version': '2.2.0'});
 
     // Timeout for authentication
     Future.delayed(const Duration(seconds: 3), () {

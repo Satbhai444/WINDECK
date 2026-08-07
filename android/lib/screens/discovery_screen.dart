@@ -682,7 +682,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                         ),
                 ),
                 const SizedBox(height: 16),
-                const Center(child: Text('v1.2.0', style: TextStyle(color: Colors.white30, fontSize: 10, letterSpacing: 1))),
+                const Center(child: Text('v2.2.0', style: TextStyle(color: Colors.white30, fontSize: 10, letterSpacing: 1))),
               ],
             ),
           ),

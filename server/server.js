@@ -29,7 +29,7 @@ const io = new Server(server, { cors: { origin: '*' } });
 const PORT = 3000;
 const BROADCAST_PORT = 3001;
 const serverName = os.hostname();
-const SERVER_VERSION = '1.2.0';
+const SERVER_VERSION = '2.2.0';
 
 // Network & Encoding logic
 function getLocalIp() {
@@ -243,17 +243,7 @@ app.get('/icon', async (req, res) => {
     const name = req.query.name || 'App';
     if (!exePath) return res.status(400).send('Path required');
     
-    // Check if path is an actual file
-    if (!fs.existsSync(exePath)) {
-        // Fallback to SVG letter icon for UWP apps or missing paths
-        const letter = name.charAt(0).toUpperCase();
-        const colors = ['#0078d4', '#e81123', '#22c55e', '#f59e0b', '#8b5cf6', '#ec4899'];
-        const color = colors[name.length % colors.length];
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" rx="12" fill="${color}"/><text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#ffffff">${letter}</text></svg>`;
-        res.setHeader('Content-Type', 'image/svg+xml');
-        return res.send(svg);
-    }
-
+    // Allow extractIcon to handle UWP app IDs (which are not valid physical paths)
     try {
         const iconPath = await appDiscovery.extractIcon(exePath);
         if (fs.existsSync(iconPath)) {
