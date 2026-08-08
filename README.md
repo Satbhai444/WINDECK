@@ -118,7 +118,7 @@ WINDECK/
 
 ## Version
 
-Current: **v2.3.6**
+Current: **v2.3.7**
 
 ## License
 
