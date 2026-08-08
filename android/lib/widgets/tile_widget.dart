@@ -180,19 +180,42 @@ class _TileWidgetState extends State<TileWidget> with SingleTickerProviderStateM
     if (conn.serverIp.isEmpty || conn.otp.isEmpty) return;
 
     try {
-      FilePickerResult? result = await FilePicker.pickFiles(allowMultiple: false);
-      if (result != null && result.files.single.path != null) {
-        setState(() => _isUploading = true);
-        var request = http.MultipartRequest('POST', Uri.parse('http://${conn.serverIp}:3000/upload'));
-        request.headers['X-WinDeck-Auth'] = conn.otp;
-        request.files.add(await http.MultipartFile.fromPath('file', result.files.single.path!));
+      FilePickerResult? result = await FilePicker.pickFiles(allowMultiple: true);
+      if (result != null && result.files.isNotEmpty) {
         
-        var response = await request.send();
-        if (response.statusCode == 200) {
-          if (conn.hapticsEnabled) HapticFeedback.heavyImpact();
-          if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('File transferred to PC successfully!')));
-        } else {
-          if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Upload failed.')));
+        final filesToUpload = result.files.take(10).toList();
+        
+        setState(() => _isUploading = true);
+        
+        int successCount = 0;
+        
+        for (int i = 0; i < filesToUpload.length; i++) {
+            if (!mounted) break;
+            
+            // Optional: update UI with progress like "Uploading 1/5..."
+            // For now, it will just show the generic loading indicator
+            
+            var request = http.MultipartRequest('POST', Uri.parse('http://${conn.serverIp}:3000/upload'));
+            request.headers['X-WinDeck-Auth'] = conn.otp;
+            request.files.add(await http.MultipartFile.fromPath('file', filesToUpload[i].path!));
+            
+            try {
+                var response = await request.send();
+                if (response.statusCode == 200) {
+                    successCount++;
+                }
+            } catch (e) {
+                print('Failed to upload file ${filesToUpload[i].name}: $e');
+            }
+        }
+        
+        if (mounted) {
+            if (successCount > 0) {
+                if (conn.hapticsEnabled) HapticFeedback.heavyImpact();
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Transferred $successCount file(s) to PC!')));
+            } else {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Upload failed.')));
+            }
         }
       }
     } catch (e) {

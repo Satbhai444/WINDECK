@@ -20,8 +20,20 @@ namespace IconExtractor {
                 Type shellType = Type.GetTypeFromProgID("WScript.Shell");
                 dynamic shell = Activator.CreateInstance(shellType);
                 var shortcut = shell.CreateShortcut(path);
-                if (shortcut != null && !string.IsNullOrEmpty(shortcut.TargetPath)) {
-                    path = shortcut.TargetPath;
+                if (shortcut != null) {
+                    string iconLoc = shortcut.IconLocation;
+                    bool iconLocUsed = false;
+                    if (!string.IsNullOrEmpty(iconLoc)) {
+                        string[] parts = iconLoc.Split(',');
+                        string iconPath = parts[0].Trim();
+                        if (System.IO.File.Exists(iconPath)) {
+                            path = iconPath;
+                            iconLocUsed = true;
+                        }
+                    }
+                    if (!iconLocUsed && !string.IsNullOrEmpty(shortcut.TargetPath)) {
+                        path = shortcut.TargetPath;
+                    }
                 }
             }
 

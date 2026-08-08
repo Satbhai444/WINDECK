@@ -69,7 +69,6 @@ class ConnectionProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   ConnectionProvider([this._navigatorKey]) {
     _loadSettings();
-    _startClipboardPoller();
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -84,24 +83,25 @@ class ConnectionProvider extends ChangeNotifier with WidgetsBindingObserver {
       if (_hasConnectedBefore && !_isConnected && serverIp != 'localhost') {
         consoleLog('App resumed, restoring connection...');
         connect(serverIp, _socketService.serverPort ?? 3000);
+      } else if (_isConnected) {
+        // Instantly sync clipboard if already connected
+        syncPhoneClipboardToPcSeamless();
       }
     }
   }
 
-  void _startClipboardPoller() {
-    Timer.periodic(const Duration(seconds: 2), (timer) async {
-      if (!_isConnected || !_clipboardSyncEnabled) return;
-      try {
-        final data = await Clipboard.getData(Clipboard.kTextPlain);
-        final text = data?.text;
-        if (text != null && text.isNotEmpty && text != _lastPolledClipboard && text != _lastSetFromPhone) {
-          _lastPolledClipboard = text;
-          _socketService.emit('send-clipboard', text);
-        }
-      } catch (e) {
-        // Ignore clipboard read errors
+  Future<void> syncPhoneClipboardToPcSeamless() async {
+    if (!_isConnected || !_clipboardSyncEnabled) return;
+    try {
+      final data = await Clipboard.getData(Clipboard.kTextPlain);
+      final text = data?.text;
+      if (text != null && text.isNotEmpty && text != _lastPolledClipboard && text != _lastSetFromPhone) {
+        _lastPolledClipboard = text;
+        _socketService.emit('send-clipboard', text);
       }
-    });
+    } catch (e) {
+      // Ignore clipboard read errors
+    }
   }
 
   Future<void> _loadSettings() async {
@@ -265,6 +265,11 @@ class ConnectionProvider extends ChangeNotifier with WidgetsBindingObserver {
           consoleLog('Silent re-auth failed: $error');
           _connectionPhase = ConnectionPhase.pairingRequired;
           notifyListeners();
+        } else {
+          // Request layout on successful reconnect to ensure sync
+          requestLayout();
+          // Instantly sync clipboard upon restoring connection
+          syncPhoneClipboardToPcSeamless();
         }
       });
     }

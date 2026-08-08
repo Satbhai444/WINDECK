@@ -18,6 +18,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late PageController _pageController;
   bool _isFullscreen = false;
+  bool _isLandscape = false;
   Timer? _fadeTimer;
   bool _isFabVisible = true;
 
@@ -39,15 +40,34 @@ class _HomeScreenState extends State<HomeScreen> {
   void _toggleFullscreen() {
     setState(() {
       _isFullscreen = !_isFullscreen;
+      SystemChrome.setEnabledSystemUIMode(
+        _isFullscreen ? SystemUiMode.immersiveSticky : SystemUiMode.edgeToEdge,
+      );
       if (_isFullscreen) {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
         _resetFadeTimer();
       } else {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
         _fadeTimer?.cancel();
         _isFabVisible = true;
       }
     });
+  }
+
+  void _toggleLandscape() {
+    setState(() {
+      _isLandscape = !_isLandscape;
+    });
+    
+    if (_isLandscape) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+    } else {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+    }
   }
 
   @override
@@ -80,10 +100,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _checkAndShowWhatsNew() async {
     final prefs = await SharedPreferences.getInstance();
-    final hasShown = prefs.getBool('shown_v1_1_whatsnew') ?? false;
+    final hasShown = prefs.getBool('shown_v2_3_7_whatsnew') ?? false;
     if (!hasShown && mounted) {
       _showWhatsNewDialog();
-      await prefs.setBool('shown_v1_1_whatsnew', true);
+      await prefs.setBool('shown_v2_3_7_whatsnew', true);
     }
   }
 
@@ -97,7 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Icon(Icons.new_releases_rounded, color: Color(0xFF0078d4)),
             SizedBox(width: 8),
-            Text("What's New in v1.1", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+            Text("What's New in v2.3.7", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
           ],
         ),
         content: SingleChildScrollView(
@@ -105,16 +125,17 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildFeatureRow('dropzone', 'DropZone Transfer', 'Tap to instantly send photos & files wirelessly to your PC.'),
-              const SizedBox(height: 12),
-              _buildFeatureRow('airmouse', 'AirMouse & Pointer', 'Turn your phone into a smooth touchpad & presentation clicker.'),
-              const SizedBox(height: 12),
-              _buildFeatureRow('webcam', 'Webcam Bridge', 'Use your phone as a high-quality HD webcam for your PC (via OBS).'),
-              const SizedBox(height: 12),
-              _buildFeatureRow('timer', 'Pomodoro Timers', 'Live countdowns on tiles with heavy vibration alerts when finished.'),
+              const Text("🔴 Bug Fixes", style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 8),
+              _buildFeatureRow('alert', 'Sync Fixed', 'Apps edited on PC now sync properly without reconnecting!'),
+              _buildFeatureRow('alert', 'Window Controls', 'Minimize and Close buttons on PC now work correctly.'),
+              const SizedBox(height: 16),
+              const Text("🟢 New Features", style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 8),
+              _buildFeatureRow('dropzone', 'Manual App Add', 'Drag & drop .exe files into the PC app to add them easily.'),
+              _buildFeatureRow('airmouse', 'Landscape Mode', 'Toggle landscape rotation from the 3-dot menu!'),
+              _buildFeatureRow('timer', 'Clipboard to PC', 'Use the new paste icon in the top bar to send phone clipboard to PC.'),
               const SizedBox(height: 20),
-              const Text("⚠️ To use these, add them from the PC app sidebar to your layout!", 
-                style: TextStyle(color: Colors.cyanAccent, fontSize: 13, fontStyle: FontStyle.italic)),
             ],
           ),
         ),
@@ -264,6 +285,29 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           actions: [
+            // Sync clipboard to PC button
+            IconButton(
+              icon: const Icon(Icons.paste_rounded, color: Colors.cyanAccent),
+              tooltip: 'Paste Phone Clipboard to PC',
+              onPressed: () async {
+                final data = await Clipboard.getData(Clipboard.kTextPlain);
+                final text = data?.text;
+                if (text != null && text.isNotEmpty) {
+                  conn.syncPhoneClipboardToPc(text);
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Pasted to PC!'), backgroundColor: Colors.green),
+                    );
+                  }
+                } else {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Phone clipboard is empty!'), backgroundColor: Colors.redAccent),
+                    );
+                  }
+                }
+              },
+            ),
             // Hamburger Menu (3-dot)
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert_rounded, color: Colors.white54),
@@ -283,6 +327,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   case 'fullscreen':
                     _toggleFullscreen();
                     break;
+                  case 'landscape':
+                    _toggleLandscape();
+                    break;
                   case 'disconnect':
                     final confirm = await _onWillPop();
                     if (confirm) {
@@ -296,6 +343,12 @@ class _HomeScreenState extends State<HomeScreen> {
               },
               itemBuilder: (context) => [
                 _buildMenuItem(Icons.sync_rounded, 'Sync Layout', 'sync', const Color(0xFF0078d4)),
+                _buildMenuItem(
+                  _isLandscape ? Icons.screen_lock_portrait_rounded : Icons.screen_lock_landscape_rounded,
+                  _isLandscape ? 'Portrait Mode' : 'Landscape Mode',
+                  'landscape',
+                  Colors.greenAccent,
+                ),
                 _buildMenuItem(Icons.fullscreen_rounded, 'Fullscreen', 'fullscreen', const Color(0xFFa855f7)),
                 _buildMenuItem(Icons.settings_rounded, 'Settings', 'settings', Colors.white54),
                 const PopupMenuDivider(),

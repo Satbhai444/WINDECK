@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Tray, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, Tray, Menu, dialog } = require('electron');
 const path = require('path');
 const { autoUpdater } = require('electron-updater');
 
@@ -12,7 +12,12 @@ function createWindow() {
         height: 700,
         minWidth: 800,
         minHeight: 600,
-        frame: false,
+        titleBarStyle: 'hidden',
+        titleBarOverlay: {
+            color: '#0c0c0e',
+            symbolColor: '#ffffff',
+            height: 40
+        },
         resizable: true,
         backgroundColor: '#0c0c0e',
         icon: path.join(__dirname, 'icon.png'),
@@ -123,27 +128,6 @@ app.on('activate', function () {
 });
 
 // IPC handlers
-ipcMain.on('close-app', () => {
-    if (mainWindow) {
-        mainWindow.hide();
-    }
-});
-
-ipcMain.on('minimize-app', () => {
-    if (mainWindow) {
-        mainWindow.hide();
-    }
-});
-
-ipcMain.on('maximize-app', () => {
-    if (mainWindow) {
-        if (mainWindow.isMaximized()) {
-            mainWindow.unmaximize();
-        } else {
-            mainWindow.maximize();
-        }
-    }
-});
 
 ipcMain.on('regenerate-otp', () => {
     if (serverInstance) {
@@ -190,6 +174,22 @@ ipcMain.on('save-layout', (event, layout) => {
     } catch (err) {
         console.error('Failed to save layout:', err);
     }
+});
+
+ipcMain.handle('select-file', async () => {
+    const result = await dialog.showOpenDialog(mainWindow, {
+        title: 'Select Application',
+        filters: [{ name: 'Applications', extensions: ['exe', 'lnk'] }],
+        properties: ['openFile']
+    });
+    
+    if (result.canceled || result.filePaths.length === 0) {
+        return null;
+    }
+    
+    const filePath = result.filePaths[0];
+    const name = path.basename(filePath, path.extname(filePath));
+    return { name, path: filePath };
 });
 
 ipcMain.on('request-apps', async (event) => {

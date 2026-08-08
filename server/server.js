@@ -30,7 +30,7 @@ const io = new Server(server, { cors: { origin: '*' } });
 const PORT = 3000;
 const BROADCAST_PORT = 3001;
 const serverName = os.hostname();
-const SERVER_VERSION = '2.3.6';
+const SERVER_VERSION = '2.3.7';
 
 // Network & Encoding logic
 function getLocalIp() {
@@ -528,7 +528,11 @@ module.exports = {
         return await appDiscovery.getStartMenuApps();
     },
     broadcastLayout: (layout) => {
-        io.emit('sync-layout', layout);
+        io.sockets.sockets.forEach((socket) => {
+            if (socket.authenticated) {
+                socket.emit('sync-layout', layout);
+            }
+        });
     },
     sendFileToPhone: (filePath) => {
         if (activeClientSocket && activeClientSocket.authenticated) {

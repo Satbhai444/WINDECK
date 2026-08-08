@@ -114,28 +114,7 @@
             </div>
             <span class="text-sm font-bold tracking-tight">win<span class="text-[#0078d4]">deck</span></span>
             <span
-                class="text-[9px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white/40 ml-1">v2.3.6</span>
-        </div>
-        <div class="flex items-center gap-1">
-            <button onclick="minimizeApp()"
-                class="no-drag text-white/40 hover:text-white hover:bg-white/10 p-2 rounded transition-all">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-            </button>
-            <button onclick="maximizeApp()"
-                class="no-drag text-white/40 hover:text-white hover:bg-white/10 p-2 rounded transition-all">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                </svg>
-            </button>
-            <button onclick="closeApp()"
-                class="no-drag text-white/40 hover:text-red-400 hover:bg-red-400/10 p-2 rounded transition-all">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-            </button>
+                class="text-[9px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white/40 ml-1">v2.3.7</span>
         </div>
     </div>
 
@@ -178,7 +157,7 @@
             <div class="mt-auto mb-4 px-2 w-full">
                 <div class="text-center sm:text-left sm:pl-3">
                     <span class="text-[10px] text-white/30 font-bold uppercase tracking-widest block">Version</span>
-                    <span class="text-[11px] text-white/50 font-medium">v2.3.6</span>
+                    <span class="text-[11px] text-white/50 font-medium">v2.3.7</span>
                 </div>
             </div>
         </div>
@@ -492,13 +471,21 @@
                                 class="asset-tab text-sm font-semibold text-white/40 border-b-2 border-transparent pb-1 hover:text-white">Websites</button>
                         </div>
 
-                        <!-- Search Bar -->
-                        <div class="mb-4 shrink-0 relative flex items-center">
-    <i data-lucide="search" class="absolute left-3 w-4 h-4 text-white/40 pointer-events-none"></i>
-    <input type="text" id="asset-search" oninput="filterAssets()"
-    placeholder="Search Apps, Websites..."
-    class="w-full bg-black/30 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#0078d4] transition-colors shadow-inner box-border">
-</div>
+                        <!-- Search Bar & Add App Button -->
+                        <div class="mb-4 shrink-0 flex gap-2 items-center">
+                            <div class="relative flex-1">
+                                <i data-lucide="search" class="absolute left-3 top-3 w-4 h-4 text-white/40 pointer-events-none"></i>
+                                <input type="text" id="asset-search" oninput="filterAssets()"
+                                    placeholder="Search Apps, Websites..."
+                                    class="w-full bg-black/30 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#0078d4] transition-colors shadow-inner box-border">
+                            </div>
+                            <button onclick="addCustomApp()" class="bg-white/5 border border-white/10 text-white/80 p-2.5 rounded-xl hover:bg-white/10 hover:text-white transition-all tooltip" title="Add Custom App (.exe/.lnk)">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                            </button>
+                        </div>
 
                         <div id="asset-list-apps"
                             class="asset-list flex-1 overflow-y-auto grid grid-cols-3 gap-3 auto-rows-max pr-2">
@@ -568,7 +555,7 @@
                         </div>
                         <div class="flex flex-col">
                             <span class="text-lg font-bold text-white">WinDeck (Desktop)</span>
-                            <span class="text-sm text-white/50">v2.3.6</span>
+                            <span class="text-sm text-white/50">v2.3.7</span>
                         </div>
                     </div>
                     <p class="text-sm text-white/60 leading-relaxed mb-6">
@@ -873,7 +860,7 @@
                     </div>
 
                     <div class="border-t border-white/5 pt-4 mt-4 flex items-center justify-between">
-                        <div class="text-xs text-white/30">WinDeck v2.3.6 · Made with ❤️ for Windows</div>
+                        <div class="text-xs text-white/30">WinDeck v2.3.7 • Made with ❤️ for Windows</div>
                         <div class="text-xs text-white/20">© 2025 WinDeck</div>
                     </div>
                 </div>
@@ -1167,10 +1154,7 @@
             localStorage.setItem('shown_v1_2_whatsnew', 'true');
         }
 
-        // Window Controls
-        function closeApp() { ipcRenderer.send('close-app'); }
-        function minimizeApp() { ipcRenderer.send('minimize-app'); }
-        function maximizeApp() { ipcRenderer.send('maximize-app'); }
+
 
 
         function renameDevice() {
@@ -1629,8 +1613,18 @@
             });
         }
 
-        ipcRenderer.on('system-apps-data', (event, apps) => {
-            systemApps = apps || [];
+        async function addCustomApp() {
+            const file = await window.electronAPI.selectFile();
+            if (file) {
+                // Check if already exists
+                if (!systemApps.find(a => a.path === file.path)) {
+                    systemApps.unshift(file);
+                    renderSystemAppsList();
+                }
+            }
+        }
+
+        function renderSystemAppsList() {
             const container = document.getElementById('asset-list-apps');
             container.innerHTML = '';
 
@@ -1650,6 +1644,31 @@
                 `;
                 container.appendChild(div);
             });
+            filterAssets();
+        }
+
+        // Global drag and drop for .exe files
+        document.body.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+        document.body.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (e.dataTransfer.files.length > 0) {
+                const file = e.dataTransfer.files[0];
+                if (file.path.endsWith('.exe') || file.path.endsWith('.lnk')) {
+                    const appObj = { name: file.name.replace(/\.[^/.]+$/, ""), path: file.path };
+                    if (!systemApps.find(a => a.path === appObj.path)) {
+                        systemApps.unshift(appObj);
+                        setAssetTab('apps');
+                        renderSystemAppsList();
+                    }
+                }
+            }
+        });
+
+        ipcRenderer.on('system-apps-data', (event, apps) => {
+            systemApps = apps || [];
+            renderSystemAppsList();
 
             // Auto-populate Apps page if it has only empty tiles
             if (apps && apps.length > 0 && layoutData && layoutData.length > 0) {

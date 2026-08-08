@@ -3,7 +3,7 @@ const os = require('os');
 
 contextBridge.exposeInMainWorld('electronAPI', {
     send: (channel, data) => {
-        let validChannels = ['close-app', 'minimize-app', 'maximize-app', 'create-room', 'disconnect-client', 'get-layout', 'request-apps', 'send-file-to-phone', 'save-layout', 'trigger-update', 'execute-system-action'];
+        let validChannels = ['create-room', 'disconnect-client', 'get-layout', 'request-apps', 'send-file-to-phone', 'save-layout', 'trigger-update', 'execute-system-action'];
         if (validChannels.includes(channel)) {
             ipcRenderer.send(channel, data);
         }
@@ -28,5 +28,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
             }
         }
         return ips;
-    }
+    },
+    selectFile: () => ipcRenderer.invoke('select-file')
 });

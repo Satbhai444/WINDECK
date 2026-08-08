@@ -11,8 +11,9 @@ class TileGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        int crossAxisCount = 2;
-        int rowCount = 4;
+        bool isLandscape = constraints.maxWidth > constraints.maxHeight;
+        int crossAxisCount = isLandscape ? 4 : 2;
+        int rowCount = isLandscape ? 2 : 4;
         
         // Calculate aspect ratio to fit exactly rowCount (4) rows vertically
         double horizontalPadding = 32.0; // 16 * 2

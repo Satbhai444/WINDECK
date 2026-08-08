@@ -10,6 +10,7 @@ class SocketService {
   IO.Socket? _socket;
   String? serverIp;
   int? serverPort;
+  Function(List)? _onSyncLayoutCallback;
 
   int _reconnectAttemptCount = 0;
   int get reconnectAttemptCount => _reconnectAttemptCount;
@@ -80,6 +81,10 @@ class SocketService {
     _socket?.on('foreground-app-changed', (data) => onWindowUpdate(Map<String, dynamic>.from(_decryptData(data))));
     _socket?.on('clipboard-update', (data) => onClipboardUpdate(_decryptData(data).toString()));
     _socket?.on('file-offer', (data) => onFileOffer(_decryptData(data).toString()));
+
+    if (_onSyncLayoutCallback != null) {
+      _socket?.on('sync-layout', (data) => _onSyncLayoutCallback!(_decryptData(data) as List));
+    }
 
     // Reconnection event listeners for Fix 2 (stale-IP fallback)
     _socket?.on('reconnect_attempt', (attemptNumber) {
@@ -154,6 +159,7 @@ class SocketService {
   }
 
   void onSyncLayout(Function(List) callback) {
+    _onSyncLayoutCallback = callback;
     _socket?.on('sync-layout', (data) => callback(_decryptData(data) as List));
   }
 

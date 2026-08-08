@@ -36,7 +36,7 @@ WinDeck is a two-part application suite that transforms your Android smartphone 
 
 ## Architecture
 
-```
+``` 
 ┌─────────────────────┐          WiFi / LAN          ┌──────────────────────┐
 │   WinDeck Server    │◄────── Socket.IO + HTTP ──────►│    WinDeck App       │
 │   (Electron/Node)   │          (Encrypted)          │    (Flutter/Dart)    │

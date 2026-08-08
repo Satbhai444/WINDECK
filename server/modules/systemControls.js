@@ -18,13 +18,15 @@ function initPersistentShell() {
 $MouseCode = @'
 using System;
 using System.Runtime.InteropServices;
-public class Mouse {
+public class Input {
     [DllImport("user32.dll")]
     public static extern void mouse_event(uint dwFlags, int dx, int dy, uint dwData, int dwExtraInfo);
     [DllImport("user32.dll")]
     public static extern bool GetCursorPos(out POINT lpPoint);
     [DllImport("user32.dll")]
     public static extern bool SetCursorPos(int X, int Y);
+    [DllImport("user32.dll")]
+    public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, int dwExtraInfo);
     public struct POINT { public int X; public int Y; }
     public const uint LEFTDOWN = 0x02;
     public const uint LEFTUP = 0x04;
@@ -48,10 +50,16 @@ Add-Type -TypeDefinition $MouseCode
     console.log('[SystemControls] Persistent PowerShell process started');
 }
 
-function sendKey(charCode) {
+function sendKey(key) {
     if (!psProcess) initPersistentShell();
     if (psProcess && psProcess.stdin.writable) {
-        psProcess.stdin.write(`$wshell.SendKeys([char]${charCode})\n`);
+        if (typeof key === 'number') {
+            // Virtual Key Code
+            psProcess.stdin.write(`[Input]::keybd_event(${key}, 0, 0, 0); [Input]::keybd_event(${key}, 0, 2, 0)\n`);
+        } else {
+            // String (SendKeys)
+            psProcess.stdin.write(`$wshell.SendKeys('${key}')\n`);
+        }
     }
 }
 
@@ -150,7 +158,7 @@ function moveMouse(dx, dy) {
         const ix = Math.round(dx);
         const iy = Math.round(dy);
         // Optimize by reusing a global $_p variable to avoid object creation overhead on every frame
-        psProcess.stdin.write(`if ($null -eq $global:_p) { $global:_p = New-Object Mouse+POINT }; [Mouse]::GetCursorPos([ref]$global:_p) | Out-Null; [Mouse]::SetCursorPos($global:_p.X + ${ix}, $global:_p.Y + ${iy}) | Out-Null\n`);
+        psProcess.stdin.write(`if ($null -eq $global:_p) { $global:_p = New-Object Input+POINT }; [Input]::GetCursorPos([ref]$global:_p) | Out-Null; [Input]::SetCursorPos($global:_p.X + ${ix}, $global:_p.Y + ${iy}) | Out-Null\n`);
     }
 }
 
@@ -158,9 +166,9 @@ function clickMouse(button = 'left') {
     if (!psProcess) initPersistentShell();
     if (psProcess && psProcess.stdin.writable) {
         if (button === 'left') {
-            psProcess.stdin.write(`[Mouse]::mouse_event([Mouse]::LEFTDOWN, 0, 0, 0, 0); [Mouse]::mouse_event([Mouse]::LEFTUP, 0, 0, 0, 0)\n`);
+            psProcess.stdin.write(`[Input]::mouse_event([Input]::LEFTDOWN, 0, 0, 0, 0); [Input]::mouse_event([Input]::LEFTUP, 0, 0, 0, 0)\n`);
         } else if (button === 'right') {
-            psProcess.stdin.write(`[Mouse]::mouse_event([Mouse]::RIGHTDOWN, 0, 0, 0, 0); [Mouse]::mouse_event([Mouse]::RIGHTUP, 0, 0, 0, 0)\n`);
+            psProcess.stdin.write(`[Input]::mouse_event([Input]::RIGHTDOWN, 0, 0, 0, 0); [Input]::mouse_event([Input]::RIGHTUP, 0, 0, 0, 0)\n`);
         }
     }
 }
@@ -170,7 +178,7 @@ function scrollMouse(deltaY) {
     if (psProcess && psProcess.stdin.writable) {
         // MOUSEEVENTF_WHEEL = 0x0800, wheel delta is passed in dwData
         const delta = Math.round(deltaY);
-        psProcess.stdin.write(`[Mouse]::mouse_event([Mouse]::WHEEL, 0, 0, ${delta}, 0)\n`);
+        psProcess.stdin.write(`[Input]::mouse_event([Input]::WHEEL, 0, 0, ${delta}, 0)\n`);
     }
 }
 
