@@ -6,3 +6,6 @@ Releases-windeck.zip
 *.exe
 *.apk
 *.zip
+docs/
+credentials.json
+*.env
