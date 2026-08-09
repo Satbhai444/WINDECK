@@ -1,47 +1,159 @@
-# WinDeck - Wireless PC Control Suite
+<div align="center">
+  <img src="server/icon.png" alt="WinDeck Logo" width="120"/>
 
-<p align="center">
-  <strong>Control your Windows PC from your Android phone - wirelessly.</strong>
-</p>
+  <h1>WinDeck</h1>
 
-<p align="center">
-  <a href="https://github.com/Satbhai444/WINDECK/releases/latest"><img src="https://img.shields.io/github/v/release/Satbhai444/WINDECK?style=for-the-badge&color=blue" alt="Latest Release"></a>
-  <a href="https://github.com/Satbhai444/WINDECK/blob/master/LICENSE"><img src="https://img.shields.io/github/license/Satbhai444/WINDECK?style=for-the-badge&color=green" alt="License"></a>
-  <a href="https://website-fawn-nine-99.vercel.app/"><img src="https://img.shields.io/badge/Website-Live-brightgreen?style=for-the-badge" alt="Website"></a>
-  <a href="https://github.com/Satbhai444/WINDECK/stargazers"><img src="https://img.shields.io/github/stars/Satbhai444/WINDECK?style=for-the-badge&color=yellow" alt="Stars"></a>
-</p>
+  <p><b>A powerful wireless control suite that transforms your Android phone into a remote control for your Windows PC.</b></p>
+  
+  <p>
+    <a href="https://github.com/Satbhai444/WINDECK/releases/latest" style="text-decoration:none;"><img src="https://img.shields.io/github/v/release/Satbhai444/WINDECK?style=flat-square&color=6f42c1" alt="GitHub Release"></a>
+    <a href="https://github.com/Satbhai444/WINDECK/stargazers" style="text-decoration:none;"><img src="https://img.shields.io/github/stars/Satbhai444/WINDECK?style=flat-square&color=e3b341" alt="GitHub Stars"></a>
+    <a href="LICENSE" style="text-decoration:none;"><img src="https://img.shields.io/github/license/Satbhai444/WINDECK?style=flat-square&color=28a745" alt="License"></a>
+    <a href="https://website-fawn-nine-99.vercel.app/" style="text-decoration:none;"><img src="https://img.shields.io/badge/Website-Live-brightgreen?style=flat-square" alt="Website"></a>
+  </p>
+  
+  <table style="margin: 0 auto; border-collapse: collapse; border: none;">
+    <tr>
+      <td align="center" style="padding: 15px; border: none;">
+        <a href="https://github.com/Satbhai444/WINDECK/releases/latest" style="text-decoration:none;">
+          <img src="https://img.shields.io/badge/Download_for_PC-Windows-blue?style=for-the-badge&logo=windows" alt="Download for PC" width="200" style="border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);"/>
+        </a>
+      </td>
+      <td align="center" style="padding: 15px; border: none;">
+        <a href="https://github.com/Satbhai444/WINDECK/releases/latest" style="text-decoration:none;">
+          <img src="https://img.shields.io/badge/Download_for_Mobile-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Download for Mobile" width="200" style="border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);"/>
+        </a>
+      </td>
+    </tr>
+  </table>
+</div>
 
 ---
 
 ## Overview
 
-WinDeck is a two-part application suite that transforms your Android smartphone into a powerful wireless control panel for your Windows PC. It consists of:
+WinDeck delivers a seamless, premium remote control experience by leveraging a high-speed WebSocket connection over your local network. It brings powerful extras including custom macros, real-time PC clipboard synchronization, virtual webcam streaming, and a highly customizable UI.
 
-- **WinDeck Server** (Windows) — An Electron-based desktop application that runs on your PC
-- **WinDeck App** (Android) — A Flutter-based mobile application that connects to your PC
+---
 
-⭐ **If you find this project useful, please consider giving it a star on GitHub! It helps a lot!** ⭐
+## Table of Contents
 
-## Key Features
+- [Overview](#overview)
+- [Screenshots](#screenshots)
+- [Features](#features)
+- [Installation & Setup](#installation--setup)
+- [Community & Support](#community--support)
+- [Support the Project](#support-the-project)
+- [Contributors](#contributors)
 
-| Feature | Description |
-|---|---|
-| 🚀 **App Launcher** | Launch any installed PC application from your phone |
-| 🎵 **Media Control** | Play/pause, next, previous track with live media info |
-| 🖱️ **Air Mouse** | Use your phone as a wireless mouse with gyroscope support |
-| 🔊 **Volume & Brightness** | Control system volume and screen brightness |
-| ⌨️ **Custom Macros** | Execute PowerShell scripts with a single tap |
-| 📋 **Clipboard Sync** | Seamlessly share clipboard between PC and phone |
-| 📷 **Camera Bridge** | Stream your phone camera to PC as a virtual webcam |
-| 📁 **File Transfer** | Send files between PC and phone wirelessly |
-| 🎯 **Presentation Control** | Navigate slides during presentations |
-| 🔒 **Encrypted Connection** | AES-256-CBC encrypted communication |
-| 📱 **OTA Updates** | Auto-update via GitHub Releases |
-| 🎨 **Custom Pages** | Create, rename, reorder, and manage control pages |
-| 📊 **System Monitor** | Live CPU & RAM usage on your phone |
-| 🖥️ **Active Window Tracking** | See which app is currently active on PC |
+---
 
-## Architecture
+## Screenshots
+
+<div align="center">
+  <table style="margin: 0 auto; border-collapse: collapse;">
+    <tr>
+      <td align="center" style="padding: 15px; border: none;">
+        <b>Connect to PC</b><br><br>
+        <img src="website/images/1_connect_pc.png" alt="Connect to PC" width="220" style="border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);"/>
+      </td>
+      <td align="center" style="padding: 15px; border: none;">
+        <b>Launch Apps</b><br><br>
+        <img src="website/images/2_launch_apps.png" alt="Launch Apps" width="220" style="border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);"/>
+      </td>
+      <td align="center" style="padding: 15px; border: none;">
+        <b>System Control</b><br><br>
+        <img src="website/images/3_system_control.png" alt="System Control" width="220" style="border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);"/>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" style="padding: 15px; border: none;">
+        <b>Custom App Controls</b><br><br>
+        <img src="website/images/5_app_specific_controls.png" alt="Custom Controls" width="220" style="border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);"/>
+      </td>
+      <td align="center" style="padding: 15px; border: none;">
+        <b>Website Access</b><br><br>
+        <img src="website/images/4_website_access.png" alt="Website Access" width="220" style="border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);"/>
+      </td>
+      <td align="center" style="padding: 15px; border: none;">
+        <b>PC Desktop Dashboard</b><br><br>
+        <img src="website/images/pc-app-screenshot.png" alt="PC Dashboard" width="220" style="border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);"/>
+      </td>
+    </tr>
+  </table>
+</div>
+
+---
+
+## Features
+
+<details>
+<summary><b>Media & System Controls</b></summary>
+<br>
+
+- **Media Control** — Play/pause, next, previous track with live media info.
+- **Volume & Brightness** — Control system volume and screen brightness remotely.
+- **Air Mouse** — Use your phone as a wireless mouse with gyroscope support.
+- **Presentation Control** — Navigate slides seamlessly during presentations.
+
+</details>
+
+<details>
+<summary><b>App & File Management</b></summary>
+<br>
+
+- **App Launcher** — Launch any installed PC application instantly from your phone.
+- **Active Window Tracking** — See which app is currently active on your PC.
+- **File Transfer** — Send files between your PC and phone wirelessly.
+
+</details>
+
+<details>
+<summary><b>Productivity & Automation</b></summary>
+<br>
+
+- **Custom Macros** — Execute complex PowerShell scripts with a single tap.
+- **Custom Pages** — Create, rename, reorder, and manage control pages for specific apps.
+- **Clipboard Sync** — Seamlessly share clipboard text between PC and phone.
+- **System Monitor** — View live CPU & RAM usage directly on your phone.
+- **Camera Bridge** — Stream your phone's camera to your PC as a virtual webcam.
+
+</details>
+
+<details>
+<summary><b>Security & Performance</b></summary>
+<br>
+
+- **Encrypted Connection** — AES-256-CBC encrypted communication.
+- **OTP Authentication** — Secure device pairing using a 6-digit code.
+- **OTA Updates** — Auto-update directly via GitHub Releases.
+
+</details>
+
+---
+
+## Installation & Setup
+
+### Requirements
+- **Windows PC** (Windows 10/11)
+- **Android Phone** (Android 6.0+)
+- Both devices connected to the **same WiFi/LAN network**.
+
+### Quick Start
+
+1. **Download** the latest release from the [GitHub Releases Page](https://github.com/Satbhai444/WINDECK/releases/latest).
+   - Install `WinDeck_Server_Setup_x.x.x.exe` on your PC.
+   - Install `windeck-vx.x.x.apk` on your phone.
+2. **Start the PC Server**
+   - Launch WinDeck on your PC and click **Create a Room**.
+3. **Connect the App**
+   - Open WinDeck on your Android phone.
+   - Find your PC on the network and enter the **6-digit pairing code**.
+4. **Done!** Start controlling your PC.
+
+<details>
+<summary><b>Architecture details</b></summary>
+<br>
 
 ```text
 ┌─────────────────────┐          WiFi / LAN          ┌──────────────────────┐
@@ -56,76 +168,64 @@ WinDeck is a two-part application suite that transforms your Android smartphone 
 └─────────────────────┘                               └──────────────────────┘
 ```
 
-## Quick Start
-
-### Prerequisites
-- Windows 10/11 PC
-- Android 6.0+ phone
-- Both devices on the same WiFi network
-
-### Installation
-1. Download the latest release from [GitHub Releases](https://github.com/Satbhai444/WINDECK/releases)
-2. Install `WinDeck_Server_Setup_x.x.x.exe` on your PC
-3. Install `windeck-vx.x.x.apk` on your phone
-4. Launch WinDeck Server on PC → Create a Room
-5. Open WinDeck App on phone → Find your PC → Enter the pairing code
-6. Done! Start controlling your PC!
-
-## Tech Stack
-
-| Component | Technology |
-|---|---|
-| PC App | Electron 43, Node.js, Express, Socket.IO, TailwindCSS |
-| Mobile App | Flutter 3.x, Dart, Provider, Socket.IO Client |
-| Communication | WebSocket (Socket.IO), UDP Broadcast, mDNS/Bonjour |
-| Security | AES-256-CBC Encryption, OTP Authentication |
-| Build | electron-builder (PC), Gradle (Android) |
-| Updates | electron-updater (PC), GitHub Actions CI/CD |
-
-## Project Structure
-
-```text
-WINDECK/
-├── server/                    # PC Application (Electron)
-│   ├── main.js                # Electron main process
-│   ├── preload.js             # Context bridge (IPC)
-│   ├── server.js              # Express + Socket.IO server
-│   ├── desktop_ui.html        # Desktop UI (single-page app)
-│   ├── modules/               # Native integrations (Media, WinAPI)
-│   ├── icon_extractor.exe     # C# native icon extractor
-│   └── package.json
-│
-├── android/                   # Mobile Application (Flutter)
-│   ├── lib/                   # Dart source code
-│   └── pubspec.yaml
-│
-├── docs/                      # Documentation
-├── .github/                   # CI/CD Workflows & Templates
-└── website/                   # Landing page source
-```
-
-## Documentation
-
-- [Architecture Guide](./docs/ARCHITECTURE.md)
-- [API Reference](./docs/API_REFERENCE.md)
-- [Setup Guide](./docs/SETUP_GUIDE.md)
-- [User Guide](./docs/USER_GUIDE.md)
-- [Changelog](./docs/CHANGELOG.md)
-- [Contributing](./CONTRIBUTING.md)
-- [Code of Conduct](./CODE_OF_CONDUCT.md)
-- [Security Policy](./.github/SECURITY.md)
-
-## License
-
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+</details>
 
 ---
 
-## 👨‍💻 Connect With Me
+## Community & Support
 
-Developed with ❤️ by **Darshan Satbhai**
+Join the community for updates, discussions, and help!
 
-[![Portfolio](https://img.shields.io/badge/Portfolio-darshansatbhai.in-blue?style=for-the-badge&logo=google-chrome)](https://website-fawn-nine-99.vercel.app/)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/darshan-satbhai-212600423)
-[![Instagram](https://img.shields.io/badge/Instagram-Follow-E4405F?style=for-the-badge&logo=instagram)](https://www.instagram.com/darshaan_satbhai)
-[![Email](https://img.shields.io/badge/Email-Contact_Me-red?style=for-the-badge&logo=gmail)](mailto:darshan.satbhai@gmail.com)
+<div align="center">
+  <table style="margin: 0 auto; border-collapse: collapse; border: none;">
+    <tr>
+      <td align="center" style="padding: 15px; border: none;">
+        <a href="https://github.com/Satbhai444/WINDECK/issues" style="text-decoration:none;"><img src="https://img.shields.io/badge/GitHub-Issues-181717?style=for-the-badge&logo=github" alt="GitHub Issues" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);"/></a>
+      </td>
+      <td align="center" style="padding: 15px; border: none;">
+        <a href="mailto:darshan.satbhai@gmail.com" style="text-decoration:none;"><img src="https://img.shields.io/badge/Email-Support-D14836?style=for-the-badge&logo=gmail" alt="Email Support" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);"/></a>
+      </td>
+    </tr>
+  </table>
+</div>
+
+---
+
+## Support the Project
+
+If WinDeck has been useful to you, consider supporting its development and connecting with me.
+
+<div align="center">
+  <table style="margin: 0 auto; border-collapse: collapse; border: none;">
+    <tr>
+      <td align="center" style="padding: 15px; border: none;">
+        <a href="https://website-fawn-nine-99.vercel.app/" style="text-decoration:none;"><img src="https://img.shields.io/badge/Portfolio-darshansatbhai.in-blue?style=for-the-badge&logo=google-chrome" alt="Portfolio" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);"/></a>
+      </td>
+      <td align="center" style="padding: 15px; border: none;">
+        <a href="https://www.linkedin.com/in/darshan-satbhai-212600423" style="text-decoration:none;"><img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin" alt="LinkedIn" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);"/></a>
+      </td>
+      <td align="center" style="padding: 15px; border: none;">
+        <a href="https://www.instagram.com/darshaan_satbhai" style="text-decoration:none;"><img src="https://img.shields.io/badge/Instagram-Follow-E4405F?style=for-the-badge&logo=instagram" alt="Instagram" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);"/></a>
+      </td>
+    </tr>
+  </table>
+</div>
+
+---
+
+## Contributors
+
+A huge thank you to everyone who has helped improve WinDeck! 
+
+<div align="center">
+  <a href="https://github.com/Satbhai444/WINDECK/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=Satbhai444/WINDECK" alt="Contributors" />
+  </a>
+</div>
+
+---
+
+<div align="center">
+  <p>Licensed under the <a href="LICENSE">MIT License</a>.</p>
+  <p>Developed with ❤️ by Darshan Satbhai</p>
+</div>
