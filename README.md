@@ -4,6 +4,13 @@
   <strong>Control your Windows PC from your Android phone - wirelessly.</strong>
 </p>
 
+<p align="center">
+  <a href="https://github.com/Satbhai444/WINDECK/releases/latest"><img src="https://img.shields.io/github/v/release/Satbhai444/WINDECK?style=for-the-badge&color=blue" alt="Latest Release"></a>
+  <a href="https://github.com/Satbhai444/WINDECK/blob/master/LICENSE"><img src="https://img.shields.io/github/license/Satbhai444/WINDECK?style=for-the-badge&color=green" alt="License"></a>
+  <a href="https://website-fawn-nine-99.vercel.app/"><img src="https://img.shields.io/badge/Website-Live-brightgreen?style=for-the-badge" alt="Website"></a>
+  <a href="https://github.com/Satbhai444/WINDECK/stargazers"><img src="https://img.shields.io/github/stars/Satbhai444/WINDECK?style=for-the-badge&color=yellow" alt="Stars"></a>
+</p>
+
 ---
 
 ## Overview
@@ -36,7 +43,7 @@ WinDeck is a two-part application suite that transforms your Android smartphone 
 
 ## Architecture
 
-``` 
+```text
 ┌─────────────────────┐          WiFi / LAN          ┌──────────────────────┐
 │   WinDeck Server    │◄────── Socket.IO + HTTP ──────►│    WinDeck App       │
 │   (Electron/Node)   │          (Encrypted)          │    (Flutter/Dart)    │
@@ -59,7 +66,7 @@ WinDeck is a two-part application suite that transforms your Android smartphone 
 ### Installation
 1. Download the latest release from [GitHub Releases](https://github.com/Satbhai444/WINDECK/releases)
 2. Install `WinDeck_Server_Setup_x.x.x.exe` on your PC
-3. Install `WinDeck_App_x.x.x.apk` on your phone
+3. Install `windeck-vx.x.x.apk` on your phone
 4. Launch WinDeck Server on PC → Create a Room
 5. Open WinDeck App on phone → Find your PC → Enter the pairing code
 6. Done! Start controlling your PC!
@@ -73,38 +80,28 @@ WinDeck is a two-part application suite that transforms your Android smartphone 
 | Communication | WebSocket (Socket.IO), UDP Broadcast, mDNS/Bonjour |
 | Security | AES-256-CBC Encryption, OTP Authentication |
 | Build | electron-builder (PC), Gradle (Android) |
-| Updates | electron-updater (PC), GitHub Releases API (Android) |
+| Updates | electron-updater (PC), GitHub Actions CI/CD |
 
 ## Project Structure
 
-```
+```text
 WINDECK/
 ├── server/                    # PC Application (Electron)
 │   ├── main.js                # Electron main process
 │   ├── preload.js             # Context bridge (IPC)
 │   ├── server.js              # Express + Socket.IO server
 │   ├── desktop_ui.html        # Desktop UI (single-page app)
-│   ├── modules/
-│   │   ├── appDiscovery.js    # Start Menu & UWP app scanner
-│   │   ├── systemControls.js  # Volume, brightness, mouse, keyboard
-│   │   ├── mediaMonitor.js    # Windows Media Session listener
-│   │   └── windowMonitor.js   # Active window tracker
+│   ├── modules/               # Native integrations (Media, WinAPI)
 │   ├── icon_extractor.exe     # C# native icon extractor
 │   └── package.json
 │
 ├── android/                   # Mobile Application (Flutter)
-│   ├── lib/
-│   │   ├── main.dart          # App entry point & theme
-│   │   ├── models/            # Data models (Page, Tile)
-│   │   ├── providers/         # State management (Connection, Pages)
-│   │   ├── screens/           # UI screens
-│   │   ├── services/          # Network & update services
-│   │   └── widgets/           # Reusable UI components
+│   ├── lib/                   # Dart source code
 │   └── pubspec.yaml
 │
 ├── docs/                      # Documentation
-├── Releases/                  # Built artifacts
-└── website/                   # Landing page
+├── .github/                   # CI/CD Workflows & Templates
+└── website/                   # Landing page source
 ```
 
 ## Documentation
@@ -114,16 +111,21 @@ WINDECK/
 - [Setup Guide](./docs/SETUP_GUIDE.md)
 - [User Guide](./docs/USER_GUIDE.md)
 - [Changelog](./docs/CHANGELOG.md)
-- [Contributing](./docs/CONTRIBUTING.md)
-
-## Version
-
-Current: **v2.3.7**
+- [Contributing](./CONTRIBUTING.md)
+- [Code of Conduct](./CODE_OF_CONDUCT.md)
+- [Security Policy](./.github/SECURITY.md)
 
 ## License
 
-This project is private and not open-source.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
-## Author
+---
 
-Developed by **Darshan Satbhai** ([@Satbhai444](https://github.com/Satbhai444))
+## 👨‍💻 Connect With Me
+
+Developed with ❤️ by **Darshan Satbhai**
+
+[![Portfolio](https://img.shields.io/badge/Portfolio-darshansatbhai.in-blue?style=for-the-badge&logo=google-chrome)](https://website-fawn-nine-99.vercel.app/)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/darshan-satbhai-212600423)
+[![Instagram](https://img.shields.io/badge/Instagram-Follow-E4405F?style=for-the-badge&logo=instagram)](https://www.instagram.com/darshaan_satbhai)
+[![Email](https://img.shields.io/badge/Email-Contact_Me-red?style=for-the-badge&logo=gmail)](mailto:darshan.satbhai@gmail.com)
