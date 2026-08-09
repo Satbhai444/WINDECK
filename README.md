@@ -76,8 +76,6 @@ WinDeck delivers a seamless, premium remote control experience by leveraging a h
         <img src="website/images/4_website_access.png" alt="Website Access" width="220" style="border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);"/>
       </td>
       <td align="center" style="padding: 15px; border: none;">
-        <b>PC Desktop Dashboard</b><br><br>
-        <img src="website/images/pc-app-screenshot.png" alt="PC Dashboard" width="220" style="border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.2);"/>
       </td>
     </tr>
   </table>
