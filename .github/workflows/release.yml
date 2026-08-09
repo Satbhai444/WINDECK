@@ -91,7 +91,7 @@ jobs:
           mv artifacts/android/app-release.apk artifacts/android/windeck-${{ github.ref_name }}.apk
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             artifacts/windows/*.exe
