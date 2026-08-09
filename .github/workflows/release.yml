@@ -75,13 +75,13 @@ jobs:
       contents: write
     steps:
       - name: Download Windows Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: windows-build
           path: artifacts/windows
 
       - name: Download Android Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: android-build
           path: artifacts/android
