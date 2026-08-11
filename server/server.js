@@ -30,12 +30,14 @@ const io = new Server(server, { cors: { origin: '*' } });
 const PORT = 3000;
 const BROADCAST_PORT = 3001;
 const serverName = os.hostname();
-const SERVER_VERSION = '2.3.7';
+const SERVER_VERSION = '2.3.8';
 
 // Network & Encoding logic
 function getLocalIp() {
     const interfaces = os.networkInterfaces();
     for (const name of Object.keys(interfaces)) {
+        const nameLower = name.toLowerCase();
+        if (nameLower.includes('vethernet') || nameLower.includes('vmware') || nameLower.includes('virtualbox') || nameLower.includes('tailscale') || nameLower.includes('zerotier')) continue;
         for (const iface of interfaces[name]) {
             if (iface.family === 'IPv4' && !iface.internal) {
                 return iface.address;
@@ -91,6 +93,8 @@ function getBroadcastAddresses() {
     const addresses = [];
     const interfaces = os.networkInterfaces();
     for (const name of Object.keys(interfaces)) {
+        const nameLower = name.toLowerCase();
+        if (nameLower.includes('vethernet') || nameLower.includes('vmware') || nameLower.includes('virtualbox') || nameLower.includes('tailscale') || nameLower.includes('zerotier')) continue;
         for (const iface of interfaces[name]) {
             if (iface.family === 'IPv4' && !iface.internal) {
                 const ipParts = iface.address.split('.');
@@ -319,7 +323,17 @@ io.on('connection', (socket) => {
         }
     });
 
+    let failedAttempts = 0;
+    let lockoutUntil = 0;
+
     socket.on('authenticate', (data) => {
+        if (Date.now() < lockoutUntil) {
+            const remaining = Math.ceil((lockoutUntil - Date.now()) / 1000);
+            socket.emit('authenticated', { success: false, error: `Too many failed attempts. PC locked down. Try again in ${remaining}s.` });
+            socket.disconnect();
+            return;
+        }
+
         const submittedOtp = typeof data === 'object' ? data.otp : data;
         const deviceName = typeof data === 'object' ? data.deviceName : 'Mobile Device';
         const clientVersion = typeof data === 'object' ? data.version : '1.0.0';
@@ -335,6 +349,7 @@ io.on('connection', (socket) => {
         const cleanCurrent = String(currentOtp || '').trim();
 
         if (cleanSubmitted === cleanCurrent) {
+            failedAttempts = 0;
             socket.authenticated = true;
             activeClientSocket = socket;
             socket.deviceName = deviceName;
@@ -348,8 +363,16 @@ io.on('connection', (socket) => {
             sendAppList(socket);
             sendLayout(socket);
         } else {
-            socket.emit('authenticated', { success: false, error: 'Incorrect pairing code' });
-            logToFile(`[Socket] Authentication failed for socket ${socket.id} (Submitted: '${cleanSubmitted}', Expected: '${cleanCurrent}')`);
+            failedAttempts++;
+            if (failedAttempts >= 5) {
+                logToFile(`[SECURITY] 5 consecutive failed attempts from socket ${socket.id}. Engaging Anti-Brute Force lockout.`);
+                systemControls.executeAction('lock');
+                lockoutUntil = Date.now() + (5 * 60 * 1000);
+                socket.emit('authenticated', { success: false, error: 'Anti-Brute Force triggered. PC is now locked. Try again in 5 minutes.' });
+            } else {
+                socket.emit('authenticated', { success: false, error: `Incorrect pairing code. (${5 - failedAttempts} attempts remaining)` });
+                logToFile(`[Socket] Authentication failed for socket ${socket.id} (Attempt ${failedAttempts}/5)`);
+            }
             socket.disconnect();
         }
     });

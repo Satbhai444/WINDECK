@@ -54,8 +54,8 @@ function sendKey(key) {
     if (!psProcess) initPersistentShell();
     if (psProcess && psProcess.stdin.writable) {
         if (typeof key === 'number') {
-            // Virtual Key Code
-            psProcess.stdin.write(`[Input]::keybd_event(${key}, 0, 0, 0); [Input]::keybd_event(${key}, 0, 2, 0)\n`);
+            // Virtual Key Code. 1 = KEYEVENTF_EXTENDEDKEY, 3 = KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP
+            psProcess.stdin.write(`[Input]::keybd_event(${key}, 0, 1, 0); [Input]::keybd_event(${key}, 0, 3, 0)\n`);
         } else {
             // String (SendKeys)
             psProcess.stdin.write(`$wshell.SendKeys('${key}')\n`);

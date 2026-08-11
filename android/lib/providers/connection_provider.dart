@@ -27,6 +27,8 @@ class ConnectionProvider extends ChangeNotifier with WidgetsBindingObserver {
   // Fix 1: Cached auth credentials (single source of truth — not in SocketService)
   String? _lastOtp;
   String? _lastDeviceName;
+  String? _lastIp;
+  int? _lastPort;
   bool _hasConnectedBefore = false;
 
   bool _hapticsEnabled = true;
@@ -39,6 +41,7 @@ class ConnectionProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   // Fix 2: Connection phase tracking
   ConnectionPhase _connectionPhase = ConnectionPhase.idle;
+  bool _skipNextAutoAuth = false;
 
   // Gap 5: Guard flag to prevent _onSocketDisconnect from overwriting explicit disconnect
   bool _isExplicitDisconnect = false;
@@ -56,7 +59,7 @@ class ConnectionProvider extends ChangeNotifier with WidgetsBindingObserver {
   Map<String, dynamic> get mediaData => _mediaData;
   String get activeWindow => _activeWindow;
   String get activeWindowTitle => _activeWindowTitle;
-  String get serverIp => _socketService.serverIp ?? 'localhost';
+  String get serverIp => _lastIp ?? _socketService.serverIp ?? 'localhost';
   String get otp => _lastOtp ?? '';
   ConnectionPhase get connectionPhase => _connectionPhase;
   bool get hapticsEnabled => _hapticsEnabled;
@@ -77,12 +80,14 @@ class ConnectionProvider extends ChangeNotifier with WidgetsBindingObserver {
     if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
       if (_isConnected) {
         consoleLog('App backgrounded, disconnecting socket to save battery.');
+        _isExplicitDisconnect = true;
         _socketService.disconnect();
       }
     } else if (state == AppLifecycleState.resumed) {
+      _isExplicitDisconnect = false;
       if (_hasConnectedBefore && !_isConnected && serverIp != 'localhost') {
         consoleLog('App resumed, restoring connection...');
-        connect(serverIp, _socketService.serverPort ?? 3000);
+        connect(serverIp, _lastPort ?? _socketService.serverPort ?? 3000);
       } else if (_isConnected) {
         // Instantly sync clipboard if already connected
         syncPhoneClipboardToPcSeamless();
@@ -158,7 +163,10 @@ class ConnectionProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   final SocketService _socketService = SocketService();
 
-  Future<bool> connect(String ip, int port) async {
+  Future<bool> connect(String ip, int port, {bool autoAuth = true}) async {
+    _lastIp = ip;
+    _lastPort = port;
+    _skipNextAutoAuth = !autoAuth;
     // Cancel any ongoing discovery fallback
     _discoveryService.stopDiscovery();
     _reconnectTimer?.cancel();
@@ -257,6 +265,12 @@ class ConnectionProvider extends ChangeNotifier with WidgetsBindingObserver {
     _reconnectTimer?.cancel();
     _reconnectTimer = null;
 
+    if (_skipNextAutoAuth) {
+      consoleLog('Skipping silent re-auth (manual login)');
+      _skipNextAutoAuth = false;
+      return;
+    }
+
     if (_hasConnectedBefore && _lastOtp != null && _lastDeviceName != null) {
       consoleLog('Attempting silent re-authentication...');
       authenticate(_lastOtp!, _lastDeviceName!, (success, error) {
@@ -313,7 +327,7 @@ class ConnectionProvider extends ChangeNotifier with WidgetsBindingObserver {
   void _onFileOffer(String url) async {
     try {
       final uri = Uri.parse(url);
-      final filename = uri.queryParameters['path']?.split(RegExp(r'[/\\]'))?.last ?? 'Unknown File';
+      final filename = uri.queryParameters['path']?.split(RegExp(r'[/\\]')).last ?? 'Unknown File';
 
       if (_navigatorKey != null && _navigatorKey.currentContext != null) {
         showDialog(

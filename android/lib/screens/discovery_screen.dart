@@ -392,7 +392,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
     final conn = context.read<ConnectionProvider>();
     
     // Connect to the Socket server first
-    final connected = await conn.connect(server['ip'], server['port']);
+    final connected = await conn.connect(server['ip'], server['port'], autoAuth: false);
     
     if (!connected) {
       onStateResult(false);
@@ -485,7 +485,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
     );
 
     final conn = context.read<ConnectionProvider>();
-    final connected = await conn.connect(data['ip'], data['port']);
+    final connected = await conn.connect(data['ip'], data['port'], autoAuth: false);
 
     if (!connected) {
       if (mounted) {

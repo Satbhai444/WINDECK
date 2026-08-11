@@ -18,7 +18,7 @@ class SocketService {
   enc.Key? _encryptionKey;
 
   void _setEncryptionKey(String otp) {
-    final bytes = utf8.encode(otp + 'windeck_salt');
+    final bytes = utf8.encode('${otp}windeck_salt');
     final hash = sha256.convert(bytes).bytes;
     _encryptionKey = enc.Key(Uint8List.fromList(hash));
   }
