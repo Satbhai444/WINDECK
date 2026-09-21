@@ -1,8 +1,9 @@
-version: 2.3.7
+version: 2.3.9
 files:
-  - url: WinDeck-Server-Setup-2.3.7.exe
-    sha512: 8MSRvThRKerWcYozCi7ijjxw7WQzSM4TqvsZKuYA3aRpbyei2jaTPJR/LBkbxjnS8GRmTu4hz5kE7ZtSAyyHbw==
-    size: 141363199
-path: WinDeck-Server-Setup-2.3.7.exe
-sha512: 8MSRvThRKerWcYozCi7ijjxw7WQzSM4TqvsZKuYA3aRpbyei2jaTPJR/LBkbxjnS8GRmTu4hz5kE7ZtSAyyHbw==
-releaseDate: '2026-08-08T08:58:51.237Z'
+  - url: WinDeck-Server-Setup-2.3.9.exe
+    sha512: cF2fndEIavsiB05gALLKdQdJrnRcHe/yKUU7SiX7On2jI0Jf/G9/i78eBzWyMVHQsltlBAGWLftI+W+xA6ixxw==
+    size: 141362804
+path: WinDeck-Server-Setup-2.3.9.exe
+sha512: cF2fndEIavsiB05gALLKdQdJrnRcHe/yKUU7SiX7On2jI0Jf/G9/i78eBzWyMVHQsltlBAGWLftI+W+xA6ixxw==
+releaseDate: '2026-08-11T06:35:40.237Z'
+

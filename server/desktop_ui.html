@@ -114,7 +114,7 @@
             </div>
             <span class="text-sm font-bold tracking-tight">win<span class="text-[#0078d4]">deck</span></span>
             <span
-                class="text-[9px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white/40 ml-1">v2.3.8</span>
+                class="text-[9px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white/40 ml-1 app-version-str">v2.3.9</span>
         </div>
     </div>
 
@@ -157,7 +157,7 @@
             <div class="mt-auto mb-4 px-2 w-full">
                 <div class="text-center sm:text-left sm:pl-3">
                     <span class="text-[10px] text-white/30 font-bold uppercase tracking-widest block">Version</span>
-                    <span class="text-[11px] text-white/50 font-medium">v2.3.8</span>
+                    <span class="text-[11px] text-white/50 font-medium app-version-str">v2.3.9</span>
                 </div>
             </div>
         </div>
@@ -555,7 +555,7 @@
                         </div>
                         <div class="flex flex-col">
                             <span class="text-lg font-bold text-white">WinDeck (Desktop)</span>
-                            <span class="text-sm text-white/50">v2.3.7</span>
+                            <span class="text-sm text-white/50 app-version-str">v2.3.9</span>
                         </div>
                     </div>
                     <p class="text-sm text-white/60 leading-relaxed mb-6">
@@ -860,7 +860,7 @@
                     </div>
 
                     <div class="border-t border-white/5 pt-4 mt-4 flex items-center justify-between">
-                        <div class="text-xs text-white/30">WinDeck v2.3.7 • Made with ❤️ for Windows</div>
+                        <div class="text-xs text-white/30 app-version-full-str">WinDeck v2.3.9 • Made with ❤️ for Windows</div>
                         <div class="text-xs text-white/20">© 2025 WinDeck</div>
                     </div>
                 </div>
@@ -916,7 +916,7 @@
                     </svg>
                 </div>
                 <h3 class="text-2xl font-bold text-white tracking-tight">What's New in <span
-                        class="text-[#0078d4]">v2.3.8</span></h3>
+                        class="text-[#0078d4] app-version-str">v2.3.9</span></h3>
             </div>
 
             <div class="flex flex-col gap-5 relative z-10">
@@ -1137,7 +1137,16 @@
             loadNotifPrefs();
             initWebPresets();
 
-            // Check and show What's New modal for v2.3.8
+            if (window.electronAPI && window.electronAPI.getAppVersion) {
+                window.electronAPI.getAppVersion().then(ver => {
+                    if (ver) {
+                        document.querySelectorAll('.app-version-str').forEach(el => el.textContent = 'v' + ver);
+                        document.querySelectorAll('.app-version-full-str').forEach(el => el.textContent = 'WinDeck v' + ver + ' • Made with ❤️ for Windows');
+                    }
+                }).catch(e => console.error('Failed to get app version:', e));
+            }
+
+            // Check and show What's New modal for v2.3.9
             if (localStorage.getItem('shown_v2_3_8_whatsnew') !== 'true') {
                 document.getElementById('whats-new-modal').classList.remove('hidden');
             }
@@ -1238,6 +1247,13 @@
         ipcRenderer.on('otp-update', (event, otpData) => {
             let otpStr = typeof otpData === 'string' ? otpData : (otpData.otp || otpData);
             document.getElementById('otp-display').innerText = otpStr.slice(0, 3) + ' ' + otpStr.slice(3);
+            
+            if (otpData && otpData.qr) {
+                const qrContainer = document.getElementById('qr-container');
+                const qrImg = document.getElementById('qr-display');
+                qrImg.src = otpData.qr;
+                qrContainer.classList.remove('hidden');
+            }
         });
 
         ipcRenderer.on('connection-status', (event, status) => {
@@ -1248,10 +1264,18 @@
             const devNone = document.getElementById('device-none');
             const devActive = document.getElementById('device-active');
 
-            if (status.connected) {
+            if (status.connected === 'standby') {
+                info.innerText = `Standby / Away 🟡`;
+                info.classList.remove('text-green-400', 'text-white/70');
+                info.classList.add('text-yellow-400');
+                
+                // Keep the device shown, just change the status text
+                const savedName = localStorage.getItem('windeck_custom_device_name');
+                document.getElementById('dev-name').innerText = savedName || status.deviceName;
+            } else if (status.connected) {
                 info.innerText = `Connected`;
                 info.classList.add('text-green-400');
-                info.classList.remove('text-white/70');
+                info.classList.remove('text-white/70', 'text-yellow-400');
                 btnDis.classList.remove('hidden');
                 btnCancel.classList.add('hidden');
 

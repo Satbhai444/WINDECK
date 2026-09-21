@@ -1,0 +1,22 @@
+function renderSystemAppsList() {
+            const container = document.getElementById('asset-list-apps');
+            container.innerHTML = '';
+
+            if (systemApps.length === 0) {
+                container.innerHTML = `<div class="col-span-3 text-center text-white/40 text-sm py-4">No apps found.</div>`;
+                return;
+            }
+
+            systemApps.forEach((app, i) => {
+                const div = document.createElement('div');
+                div.className = 'asset-item cursor-grab bg-white/5 border border-white/10 rounded-xl p-3 flex flex-col items-center justify-center text-center transition-all hover:bg-white/10 hover:-translate-y-1';
+                div.draggable = true;
+                div.ondragstart = (e) => onDragStartApp(e, i);
+                div.innerHTML = `
+                    <img src="http://localhost:3000/icon?path=${encodeURIComponent(app.path)}&name=${encodeURIComponent(app.name)}" class="w-8 h-8 mb-2 object-contain pointer-events-none" onerror="this.outerHTML='<div class=\\'w-8 h-8 mb-2 flex items-center justify-center bg-white/10 rounded-xl pointer-events-none\\'>⚙️</div>'">
+                    <span class="text-[10px] font-semibold text-white/80 truncate w-full px-1 pointer-events-none" title="${app.name}">${app.name}</span>
+                `;
+                container.appendChild(div);
+            });
+            filterAssets();
+        }

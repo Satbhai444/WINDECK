@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vibe Code Detector</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #09090b;
+      --bg-card: #18181b;
+      --border-color: #27272a;
+      --text-main: #f8fafc;
+      --text-muted: #a1a1aa;
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      
+      --color-clean: #10b981;
+      --color-info: #38bdf8;
+      --color-low: #facc15;
+      --color-medium: #f97316;
+      --color-high: #ef4444;
+      --color-critical: #b91c1c;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      width: 420px;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      padding: 20px;
+      overflow-x: hidden;
+    }
+    
+    /* Header */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .logo-img {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+    }
+    
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      background: linear-gradient(to right, #60a5fa, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+    
+    /* Scan Button */
+    .scan-btn {
+      position: relative;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      color: white;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+    
+    .scan-btn::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
+      transform: skewX(-20deg);
+      transition: left 0.5s ease;
+    }
+    
+    .scan-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+    }
+    
+    .scan-btn:hover::after {
+      left: 150%;
+    }
+    
+    .scan-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    #results-container { display: none; animation: fadeIn 0.4s ease; }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Score Card */
+    .score-card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    /* Dynamic glow based on score */
+    .score-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      filter: blur(40px);
+      opacity: 0.15;
+      z-index: 0;
+      transition: background-color 0.5s ease;
+    }
+    
+    .score-circle-wrapper {
+      position: relative;
+      z-index: 1;
+      width: 110px;
+      height: 110px;
+      margin: 0 auto 16px;
+    }
+    
+    /* SVG Circle for Progress */
+    svg.circular-chart {
+      display: block;
+      margin: 0 auto;
+      max-width: 100%;
+      max-height: 250px;
+    }
+    .circle-bg {
+      fill: none;
+      stroke: var(--border-color);
+      stroke-width: 2.5;
+    }
+    .circle {
+      fill: none;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      transition: stroke-dasharray 1s ease-out, stroke 0.5s ease;
+    }
+    
+    .score-text-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+    
+    .score-value {
+      font-size: 36px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+    
+    .verdict {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      z-index: 1;
+      position: relative;
+    }
+    
+    /* Categories */
+    .categories {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .category {
+      background-color: var(--bg-card);
+      border-radius: 10px;
+      padding: 14px;
+      border: 1px solid var(--border-color);
+      transition: border-color 0.2s ease;
+    }
+    
+    .category:hover {
+      border-color: #3f3f46;
+    }
+    
+    .category-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 10px;
+      color: #e4e4e7;
+    }
+    
+    .cat-score-badge {
+      background: #27272a;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    
+    .finding {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-muted);
+      margin-top: 6px;
+      padding-left: 14px;
+      position: relative;
+    }
+    
+    .finding::before {
+      content: "•";
+      position: absolute;
+      left: 2px;
+      top: 0px;
+      font-weight: bold;
+    }
+    
+    /* Severity Colors */
+    .finding.critical { color: var(--color-critical); }
+    .finding.high { color: var(--color-high); }
+    .finding.medium { color: var(--color-medium); }
+    .finding.low { color: var(--color-low); }
+    .finding.info { color: var(--color-info); }
+    .finding.clean { color: var(--color-clean); }
+    
+    /* Prompt Section */
+    .prompt-section {
+      background-color: #050505;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid #27272a;
+      position: relative;
+    }
+    
+    .prompt-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #e4e4e7;
+    }
+    
+    .copy-btn {
+      background: #27272a;
+      border: 1px solid #3f3f46;
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .copy-btn:hover {
+      background-color: #3f3f46;
+    }
+    
+    textarea {
+      width: 100%;
+      height: 140px;
+      background-color: transparent;
+      color: #a78bfa;
+      border: none;
+      padding: 10px 0 0 0;
+      font-family: 'Fira Code', monospace;
+      font-size: 12.5px;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+    }
+    
+    /* Loading Animation */
+    #loading {
+      display: none;
+      text-align: center;
+      padding: 30px 0;
+      color: var(--text-muted);
+    }
+    
+    .scanner-line {
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, transparent, var(--accent-blue), var(--accent-purple), transparent);
+      border-radius: 2px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    
+    .scanner-line::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 40%;
+      background: #fff;
+      box-shadow: 0 0 10px #fff, 0 0 20px var(--accent-blue);
+      animation: scan 1.5s infinite linear;
+    }
+    
+    @keyframes scan {
+      0% { left: -40%; }
+      100% { left: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="icons/icon48.png" alt="Logo" class="logo-img">
+    <h1>Vibe Code Detector</h1>
+  </header>
+
+  <button id="scan-btn" class="scan-btn">Scan This Website</button>
+
+  <div id="loading">
+    <div class="scanner-line"></div>
+    <p style="font-size: 14px; font-weight: 500;">Analyzing DOM structure & source code...</p>
+  </div>
+
+  <div id="results-container">
+    <div class="score-card">
+      <div id="score-glow" class="score-glow"></div>
+      
+      <div class="score-circle-wrapper">
+        <svg viewBox="0 0 36 36" class="circular-chart">
+          <path class="circle-bg"
+            d="M18 2.0845
+              a 15.9155 15.9155 0 0 1 0 31.831
+              a 15.9155 15.9155 0 0 1 0 -31.831"
+          />
+          <path id="circle-progress" class="circle"
+            stroke-dasharray="0, 100"
+            d="M18 2.0845
+              a 15.9155 15.9155 0 0 1 0 31.831
+              a 15.9155 15.9155 0 0 1 0 -31.831"
+          />
+        </svg>
+        <div class="score-text-container">
+          <div id="score-value" class="score-value">0</div>
+        </div>
+      </div>
+      
+      <div id="verdict" class="verdict">Analyzing...</div>
+      <div id="roast-box" style="font-style: italic; font-size: 13px; margin: 10px 0; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 8px; color: #d4d4d8;"></div>
+      <div style="font-size: 13px; color: var(--text-muted); font-weight: 500;">AI Code Probability Score (0-100)</div>
+    </div>
+
+    <div class="categories" id="categories-container">
+      <!-- Categories will be injected here -->
+    </div>
+
+    <div class="prompt-section">
+      <div class="prompt-title">
+        <span style="display: flex; align-items: center; gap: 6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          AI Improvement Prompt
+        </span>
+        <button id="download-report-btn" class="copy-btn" style="margin-right: 8px; background: #3b82f6; border-color: #2563eb; color: white;">📄 Download Report</button>
+        <button id="copy-prompt-btn" class="copy-btn">Copy Prompt</button>
+      </div>
+      <p style="font-size: 12px; color: #71717a; margin-bottom: 12px; line-height: 1.4;">
+        Paste this prompt into Cursor, v0, or ChatGPT to instantly fix the detected shortcuts and red flags.
+      </p>
+      <textarea id="prompt-text" readonly spellcheck="false"></textarea>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

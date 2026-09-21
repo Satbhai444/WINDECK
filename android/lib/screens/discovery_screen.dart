@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:lottie/lottie.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/connection_provider.dart';
+import 'qr_scanner_screen.dart';
 import '../services/discovery_service.dart';
 import '../globals.dart';
 import 'settings_screen.dart';
@@ -33,7 +36,11 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
   final List<Map<String, dynamic>> _discoveredServers = [];
   bool _showManualButton = false;
   bool _isLoading = false;
+  final GlobalKey _headerKey = GlobalKey();
+  final GlobalKey _radarKey = GlobalKey();
+  TutorialCoachMark? _tutorialCoachMark;
   String? _errorMessage;
+
 
   @override
   void initState() {
@@ -46,7 +53,94 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
         });
       }
     });
+    
+    // Check for First Launch Tour
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndShowTutorial();
+    });
   }
+  
+  Future<void> _checkAndShowTutorial() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool hasSeenSetupTour = prefs.getBool('windeck_setup_tour_done') ?? false;
+    
+    if (!hasSeenSetupTour && mounted) {
+      _showTutorial();
+      await prefs.setBool('windeck_setup_tour_done', true);
+    }
+  }
+
+  void _showTutorial() {
+    List<TargetFocus> targets = [
+      TargetFocus(
+        identify: "header",
+        keyTarget: _headerKey,
+        alignSkip: Alignment.topRight,
+        enableOverlayTab: true,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Step 1: Open PC App",
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Before continuing, make sure you have opened the WinDeck Server app on your Windows PC.\n\nCRITICAL: Both your PC and phone MUST be on the exact same Wi-Fi network. (Or connect your PC to your phone's Wi-Fi hotspot!).",
+                    style: TextStyle(color: Colors.white, fontSize: 16, height: 1.5),
+                  ),
+                ],
+              );
+            },
+          )
+        ],
+      ),
+      TargetFocus(
+        identify: "radar",
+        keyTarget: _radarKey,
+        alignSkip: Alignment.topRight,
+        enableOverlayTab: true,
+        shape: ShapeLightFocus.RRect,
+        radius: 20,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Step 2: Connect via OTP",
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Click 'Create Room' on your PC.\nOnce your PC appears in this list below, tap it and enter the 6-digit OTP shown on your computer screen to pair securely.",
+                    style: TextStyle(color: Colors.white, fontSize: 16, height: 1.5),
+                  ),
+                ],
+              );
+            },
+          )
+        ],
+      ),
+    ];
+
+    _tutorialCoachMark = TutorialCoachMark(
+      targets: targets,
+      colorShadow: const Color(0xFF0078d4),
+      textSkip: "SKIP",
+      paddingFocus: 10,
+      opacityShadow: 0.85,
+    )..show(context: context);
+  }
+
 
   @override
   void dispose() {
@@ -134,8 +228,8 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
     );
   }
 
-  void _showPairingDialog(Map<String, dynamic> server) {
-    final TextEditingController pinController = TextEditingController();
+  void _showPairingDialog(Map<String, dynamic> server, {String? autoOtp}) {
+    final TextEditingController pinController = TextEditingController(text: autoOtp ?? '');
     final FocusNode pinFocusNode = FocusNode();
     _isLoading = false;
     _errorMessage = null;
@@ -606,30 +700,39 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'win',
-                  style: TextStyle(
-                    fontSize: 48,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: -1,
+                Container(
+                  key: _headerKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'win',
+                        style: TextStyle(
+                          fontSize: 48,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: -1,
+                        ),
+                      ),
+                      Text(
+                        'deck',
+                        style: TextStyle(
+                          fontSize: 48,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF0078d4),
+                          height: 0.8,
+                          letterSpacing: -1,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Make sure your PC app is open and connected to the same Wi-Fi network.',
+                        style: TextStyle(fontSize: 14, color: Colors.white54, height: 1.4),
+                      ),
+                    ],
                   ),
                 ),
-                Text(
-                  'deck',
-                  style: TextStyle(
-                    fontSize: 48,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF0078d4),
-                    height: 0.8,
-                    letterSpacing: -1,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Make sure your PC app is open and connected to the same Wi-Fi network.',
-                  style: TextStyle(fontSize: 14, color: Colors.white54, height: 1.4),
-                ),
+                
                 const SizedBox(height: 48),
                 const Text(
                   'DISCOVERED COMPUTERS',
@@ -642,6 +745,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                 ),
                 const SizedBox(height: 16),
                 Expanded(
+                  key: _radarKey,
                   child: _discoveredServers.isEmpty
                       ? Center(
                           child: SingleChildScrollView(
@@ -716,6 +820,32 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
                             );
                           },
                         ),
+                ),
+                const SizedBox(height: 16),
+                Center(
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const QrScannerScreen()),
+                      );
+                      if (result != null && result is Map<String, dynamic>) {
+                        _showPairingDialog(
+                          {'name': result['name'] ?? 'PC via QR', 'ip': result['ip'], 'port': result['port'] ?? 3000},
+                          autoOtp: result['otp'].toString()
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.qr_code_scanner_rounded, size: 18, color: Colors.white),
+                    label: const Text('Scan QR instead', style: TextStyle(fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0078d4).withOpacity(0.2),
+                      foregroundColor: const Color(0xFF0078d4),
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Center(child: Text('v${Globals.appVersion}', style: const TextStyle(color: Colors.white30, fontSize: 10, letterSpacing: 1))),

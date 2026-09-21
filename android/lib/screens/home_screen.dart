@@ -100,10 +100,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _checkAndShowWhatsNew() async {
     final prefs = await SharedPreferences.getInstance();
-    final hasShown = prefs.getBool('shown_v2_3_7_whatsnew') ?? false;
+    final hasShown = prefs.getBool('shown_v2_3_8_whatsnew') ?? false;
     if (!hasShown && mounted) {
       _showWhatsNewDialog();
-      await prefs.setBool('shown_v2_3_7_whatsnew', true);
+      await prefs.setBool('shown_v2_3_8_whatsnew', true);
     }
   }
 
@@ -117,7 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Icon(Icons.new_releases_rounded, color: Color(0xFF0078d4)),
             SizedBox(width: 8),
-            Text("What's New in v2.3.7", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+            Text("What's New in v2.3.9", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
           ],
         ),
         content: SingleChildScrollView(

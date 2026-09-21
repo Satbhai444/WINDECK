@@ -29,5 +29,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
         }
         return ips;
     },
-    selectFile: () => ipcRenderer.invoke('select-file')
+    selectFile: () => ipcRenderer.invoke('select-file'),
+    getAppVersion: () => ipcRenderer.invoke('get-app-version')
 });

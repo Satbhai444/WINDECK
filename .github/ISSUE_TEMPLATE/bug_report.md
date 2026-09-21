@@ -25,8 +25,8 @@ If applicable, add screenshots to help explain your problem.
 **Environment (please complete the following information):**
  - PC OS: [e.g. Windows 11]
  - Phone OS: [e.g. Android 13]
- - PC App Version: [e.g. 2.3.7]
- - Android App Version: [e.g. 2.3.7]
+ - PC App Version: [e.g. 2.3.9]
+ - Android App Version: [e.g. 2.3.9]
  - Network setup: [e.g. Same WiFi router, Mobile Hotspot]
 
 **Additional context**

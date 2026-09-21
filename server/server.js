@@ -4,6 +4,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const dgram = require('dgram');
 const os = require('os');
+const qrcode = require('qrcode');
 const Bonjour = require('bonjour-service');
 const { startMediaMonitor } = require('./modules/mediaMonitor');
 const { startWindowMonitor } = require('./modules/windowMonitor');
@@ -30,7 +31,7 @@ const io = new Server(server, { cors: { origin: '*' } });
 const PORT = 3000;
 const BROADCAST_PORT = 3001;
 const serverName = os.hostname();
-const SERVER_VERSION = '2.3.8';
+const SERVER_VERSION = '2.3.9';
 
 // Network & Encoding logic
 function getLocalIp() {
@@ -64,6 +65,8 @@ let otpCallback = null;
 let connectionCallback = null;
 let telemetryCallback = null;
 let activeClientSocket = null;
+let standbyTimeout = null;
+let currentConnectedDevice = null;
 let lastSetFromPhone = '';
 let lastPolledClipboard = '';
 
@@ -443,10 +446,20 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        logToFile('[Socket] Client disconnected');
+        logToFile('[Socket] Client disconnected (entering standby)');
         if (socket === activeClientSocket) {
             activeClientSocket = null;
-            if (connectionCallback) connectionCallback(false, null);
+            
+            // Notify UI that we are in standby (grace period)
+            if (connectionCallback) connectionCallback('standby', currentConnectedDevice);
+            
+            // Wait 5 minutes (300,000 ms) before fully disconnecting
+            standbyTimeout = setTimeout(() => {
+                logToFile('[Socket] Standby timeout expired. Fully disconnecting client.');
+                currentConnectedDevice = null;
+                if (connectionCallback) connectionCallback(false, null);
+                standbyTimeout = null;
+            }, 5 * 60 * 1000);
         }
     });
 });
@@ -536,6 +549,11 @@ module.exports = {
     },
     getEncodedRoomId: () => generateEncodedRoomId(),
     disconnectClient: () => {
+        if (standbyTimeout) {
+            clearTimeout(standbyTimeout);
+            standbyTimeout = null;
+        }
+        currentConnectedDevice = null;
         if (activeClientSocket) {
             activeClientSocket.emit('force-disconnect');
             activeClientSocket.disconnect(true);

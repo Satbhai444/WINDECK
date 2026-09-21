@@ -35,10 +35,9 @@ function createWindow() {
     });
 
     mainWindow.on('close', function (event) {
-        if (!app.isQuitting) {
-            event.preventDefault();
-            mainWindow.hide();
-        }
+        // Kill the app entirely for now (until we build proper System Tray logic in Task 6)
+        app.isQuitting = true;
+        app.quit();
     });
 
     mainWindow.on('closed', function () {
@@ -119,6 +118,12 @@ if (!gotTheLock) {
     });
 });
 
+app.on('before-quit', () => {
+    if (serverInstance && serverInstance.stopServer) {
+        serverInstance.stopServer();
+    }
+});
+
 app.on('window-all-closed', function () {
     if (process.platform !== 'darwin') app.quit();
 });
@@ -128,6 +133,10 @@ app.on('activate', function () {
 });
 
 // IPC handlers
+
+ipcMain.handle('get-app-version', () => {
+    return app.getVersion();
+});
 
 ipcMain.on('regenerate-otp', () => {
     if (serverInstance) {
