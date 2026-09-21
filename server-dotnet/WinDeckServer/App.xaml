@@ -1,0 +1,22 @@
+﻿<Application x:Class="WinDeckServer.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:tb="http://www.hardcodet.net/taskbar"
+             Startup="Application_Startup"
+             Exit="Application_Exit">
+    <Application.Resources>
+        <!-- Tray Icon Context Menu -->
+        <ContextMenu x:Key="SysTrayMenu">
+            <MenuItem Header="Show Room ID / QR" Click="ShowQR_Click"/>
+            <Separator/>
+            <MenuItem Header="Exit WinDeck" Click="Exit_Click"/>
+        </ContextMenu>
+
+        <!-- Tray Icon Definition -->
+        <tb:TaskbarIcon x:Key="NotifyIcon"
+                        IconSource="icon.ico"
+                        ToolTipText="WinDeck Server"
+                        ContextMenu="{StaticResource SysTrayMenu}">
+        </tb:TaskbarIcon>
+    </Application.Resources>
+</Application>
