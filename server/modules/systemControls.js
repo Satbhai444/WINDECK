@@ -122,13 +122,13 @@ async function executeAction(action) {
                 sendKey(177);
                 break;
             case 'copy':
-                runPsCommand('$wshell.SendKeys('^c')');
+                runPsCommand('$wshell.SendKeys("^c")');
                 break;
             case 'paste':
-                runPsCommand('$wshell.SendKeys('^v')');
+                runPsCommand('$wshell.SendKeys("^v")');
                 break;
             case 'undo':
-                runPsCommand('$wshell.SendKeys('^z')');
+                runPsCommand('$wshell.SendKeys("^z")');
                 break;
         }
     } catch (e) {
@@ -200,4 +200,5 @@ function presentationControl(action) {
 }
 
 module.exports = { executeAction, executeMacro, launchApp, openUrl, moveMouse, clickMouse, scrollMouse, presentationControl };
+
 

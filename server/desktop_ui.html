@@ -217,7 +217,15 @@
                               <span class="text-[10px] uppercase tracking-widest text-white/40 font-bold block mb-2">Pairing Code</span>
                               <div class="relative">
                                   <div class="absolute inset-0 bg-[#0078d4] opacity-20 blur-2xl rounded-full"></div>
-                                  <span id="otp-display" class="relative z-10 text-5xl font-bold tracking-[0.2em] mono text-white leading-none pl-[0.2em] drop-shadow-[0_0_15px_rgba(0,120,212,0.5)]">------</span>
+                                  <div id="otp-display" class="relative z-10 flex gap-2 justify-center">
+                                        <div class="w-12 h-16 bg-white/10 border border-white/20 rounded-lg flex items-center justify-center text-4xl font-bold mono text-white shadow-inner otp-char">-</div>
+                                        <div class="w-12 h-16 bg-white/10 border border-white/20 rounded-lg flex items-center justify-center text-4xl font-bold mono text-white shadow-inner otp-char">-</div>
+                                        <div class="w-12 h-16 bg-white/10 border border-white/20 rounded-lg flex items-center justify-center text-4xl font-bold mono text-white shadow-inner otp-char">-</div>
+                                        <div class="w-4"></div>
+                                        <div class="w-12 h-16 bg-white/10 border border-white/20 rounded-lg flex items-center justify-center text-4xl font-bold mono text-white shadow-inner otp-char">-</div>
+                                        <div class="w-12 h-16 bg-white/10 border border-white/20 rounded-lg flex items-center justify-center text-4xl font-bold mono text-white shadow-inner otp-char">-</div>
+                                        <div class="w-12 h-16 bg-white/10 border border-white/20 rounded-lg flex items-center justify-center text-4xl font-bold mono text-white shadow-inner otp-char">-</div>
+                                    </div>
                               </div>
                           </div>
                     </div>
@@ -1264,7 +1272,10 @@
 
         ipcRenderer.on('otp-update', (event, otpData) => {
             let otpStr = typeof otpData === 'string' ? otpData : (otpData.otp || otpData);
-            document.getElementById('otp-display').innerText = otpStr.slice(0, 3) + ' ' + otpStr.slice(3);
+            const otpChars = document.querySelectorAll(".otp-char");
+            for (let i = 0; i < 6; i++) {
+                if (otpChars[i]) otpChars[i].innerText = otpStr[i] || "-";
+            }
             
             if (otpData && otpData.qr) {
                 const qrContainer = document.getElementById('qr-container');
@@ -2025,4 +2036,6 @@
     </script>
 </body>
 </html>
+
+
 
