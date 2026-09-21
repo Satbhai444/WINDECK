@@ -90,8 +90,14 @@ if (!gotTheLock) {
             serverInstance = require('./server.js'); 
             
             // Register connection changes and OTP updates BEFORE creating window
-            serverInstance.onOtp((otp) => {
-                if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('otp-update', otp);
+            serverInstance.onOtp((otpData) => {
+                if (mainWindow && !mainWindow.isDestroyed()) {
+                    let otpStr = typeof otpData === 'string' ? otpData : otpData.otp;
+                    let qrPayload = typeof otpData === 'string' ? otpData : JSON.stringify(otpData);
+                    QRCode.toDataURL(qrPayload, { color: { dark: '#0078d4', light: '#00000000' }, width: 200 }, (err, url) => {
+                        mainWindow.webContents.send('otp-update', { otp: otpStr, qr: url });
+                    });
+                }
             });
 
             serverInstance.onClientConnection((connected, deviceName) => {
@@ -149,9 +155,7 @@ ipcMain.on('create-room', (event, roomName) => {
     if (serverInstance) {
         serverInstance.createRoom(roomName);
         let roomId = serverInstance.getEncodedRoomId();
-        QRCode.toDataURL(roomId, { color: { dark: '#0078d4', light: '#00000000' }, width: 200 }, (err, url) => {
-            event.reply('room-created', { id: roomId, qr: url });
-        });
+        event.reply('room-created', { id: roomId });
     }
 });
 
@@ -232,5 +236,7 @@ ipcMain.on('execute-system-action', (event, action) => {
     systemControlsMod.executeAction(action);
 });
 }
+
+
 
 

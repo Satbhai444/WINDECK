@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -31,7 +31,7 @@ const io = new Server(server, { cors: { origin: '*' } });
 const PORT = 3000;
 const BROADCAST_PORT = 3001;
 const serverName = os.hostname();
-const SERVER_VERSION = '2.3.9';
+const SERVER_VERSION = '2.4.0';
 
 // Network & Encoding logic
 function getLocalIp() {
@@ -75,7 +75,7 @@ function generateOTP() {
     logToFile(`[OTP] Generated Pairing Code: ${currentOtp}`);
     
     if (otpCallback) {
-        otpCallback(currentOtp);
+        otpCallback({ otp: currentOtp, ip: getLocalIp(), port: PORT });
     }
 }
 
@@ -586,3 +586,5 @@ module.exports = {
         }
     }
 };
+
+
