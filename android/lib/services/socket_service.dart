@@ -1,21 +1,36 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart' as enc;
 import '../globals.dart';
+import 'package:flutter/foundation.dart';
 
 class SocketService {
-  IO.Socket? _socket;
+  WebSocketChannel? _channel;
   String? serverIp;
   int? serverPort;
   Function(List)? _onSyncLayoutCallback;
+  
+  Function? _onConnect;
+  Function? _onDisconnect;
+  Function(Map<String, dynamic>)? _onStatus;
+  Function(Map<String, dynamic>)? _onMediaUpdate;
+  Function(Map<String, dynamic>)? _onWindowUpdate;
+  Function(String)? _onClipboardUpdate;
+  Function(String)? _onFileOffer;
+  Function(int)? _onReconnectAttempt;
+  Function(dynamic)? _onReconnectError;
+  Function()? _onReconnectFailed;
 
   int _reconnectAttemptCount = 0;
   int get reconnectAttemptCount => _reconnectAttemptCount;
   void resetReconnectAttemptCount() { _reconnectAttemptCount = 0; }
   enc.Key? _encryptionKey;
+
+  Timer? _reconnectTimer;
+  bool _intentionalDisconnect = false;
 
   void _setEncryptionKey(String otp) {
     final bytes = utf8.encode('${otp}windeck_salt');
@@ -40,7 +55,7 @@ class SocketService {
       final decrypted = encrypter.decrypt16(parts[1], iv: iv);
       return jsonDecode(decrypted);
     } catch (e) {
-      print('Decryption error: $e');
+      debugPrint('Decryption error: $e');
       return payload;
     }
   }
@@ -55,125 +70,181 @@ class SocketService {
     Function(Map<String, dynamic>) onWindowUpdate,
     Function(String) onClipboardUpdate,
     Function(String) onFileOffer, {
-    Function(int attemptNumber)? onReconnectAttempt,
-    Function(dynamic error)? onReconnectError,
+    Function(int)? onReconnectAttempt,
+    Function(dynamic)? onReconnectError,
     Function()? onReconnectFailed,
   }) async {
     serverIp = ip;
     serverPort = port;
-    _reconnectAttemptCount = 0;
+    _intentionalDisconnect = false;
 
-    _socket?.dispose();
+    _onConnect = onConnect;
+    _onDisconnect = onDisconnect;
+    _onStatus = onStatus;
+    _onMediaUpdate = onMediaUpdate;
+    _onWindowUpdate = onWindowUpdate;
+    _onClipboardUpdate = onClipboardUpdate;
+    _onFileOffer = onFileOffer;
+    _onReconnectAttempt = onReconnectAttempt;
+    _onReconnectError = onReconnectError;
+    _onReconnectFailed = onReconnectFailed;
 
-    _socket = IO.io('http://$ip:$port', <String, dynamic>{
-      'transports': ['websocket'],
-      'autoConnect': false,
-      'reconnection': true,
-      'reconnectionAttempts': 99999,
-      'reconnectionDelay': 1000,
-      'timeout': 3000,
-    });
+    return await _connectInternal();
+  }
 
-    _socket?.onConnect((_) => onConnect());
-    _socket?.onDisconnect((_) => onDisconnect());
-    _socket?.on('status', (data) => onStatus(Map<String, dynamic>.from(_decryptData(data))));
-    _socket?.on('media-update', (data) => onMediaUpdate(Map<String, dynamic>.from(_decryptData(data))));
-    _socket?.on('foreground-app-changed', (data) => onWindowUpdate(Map<String, dynamic>.from(_decryptData(data))));
-    _socket?.on('clipboard-update', (data) => onClipboardUpdate(_decryptData(data).toString()));
-    _socket?.on('file-offer', (data) => onFileOffer(_decryptData(data).toString()));
-
-    if (_onSyncLayoutCallback != null) {
-      _socket?.on('sync-layout', (data) => _onSyncLayoutCallback!(_decryptData(data) as List));
-    }
-
-    // Reconnection event listeners for Fix 2 (stale-IP fallback)
-    _socket?.on('reconnect_attempt', (attemptNumber) {
-      _reconnectAttemptCount = attemptNumber is int ? attemptNumber : _reconnectAttemptCount + 1;
-      onReconnectAttempt?.call(_reconnectAttemptCount);
-    });
-
-    _socket?.on('reconnect_error', (error) {
-      onReconnectError?.call(error);
-    });
-
-    _socket?.on('reconnect_failed', (_) {
-      onReconnectFailed?.call();
-    });
-
+  Future<bool> _connectInternal() async {
+    if (serverIp == null || serverPort == null) return false;
     final completer = Completer<bool>();
-
-    _socket?.onConnect((_) {
-      if (!completer.isCompleted) completer.complete(true);
-    });
-
-    _socket?.onConnectError((err) {
-      print('Connect error: $err');
-      if (!completer.isCompleted) completer.complete(false);
-    });
-
-    _socket?.connect();
-
+    
     try {
-      return await completer.future.timeout(const Duration(seconds: 4));
+      final wsUrl = Uri.parse('ws://$serverIp:$serverPort/ws');
+      _channel = WebSocketChannel.connect(wsUrl);
+      
+      _channel!.stream.listen(
+        (message) {
+          if (!completer.isCompleted) {
+             completer.complete(true);
+             _onConnect?.call();
+             _reconnectAttemptCount = 0;
+          }
+          _handleIncomingMessage(message.toString());
+        },
+        onError: (error) {
+          debugPrint('WS Error: $error');
+          if (!completer.isCompleted) {
+            completer.complete(false);
+          } else {
+             _onReconnectError?.call(error);
+             _scheduleReconnect();
+          }
+        },
+        onDone: () {
+          debugPrint('WS Closed');
+          _onDisconnect?.call();
+          if (!_intentionalDisconnect) {
+            _scheduleReconnect();
+          }
+        },
+      );
+      
+      Future.delayed(const Duration(seconds: 4), () {
+        if (!completer.isCompleted) {
+          completer.complete(false);
+          _channel?.sink.close();
+        }
+      });
+      
+      return await completer.future;
     } catch (e) {
-      return false;
+       debugPrint('WS Connect Exception: $e');
+       if (!completer.isCompleted) completer.complete(false);
+       return false;
+    }
+  }
+
+  void _scheduleReconnect() {
+    if (_intentionalDisconnect) return;
+    if (_reconnectTimer?.isActive ?? false) return;
+    
+    _reconnectAttemptCount++;
+    if (_reconnectAttemptCount > 99999) {
+      _onReconnectFailed?.call();
+      return;
+    }
+    
+    _onReconnectAttempt?.call(_reconnectAttemptCount);
+    _reconnectTimer = Timer(const Duration(seconds: 2), () {
+      _connectInternal();
+    });
+  }
+
+  Completer<Map<String, dynamic>>? _authCompleter;
+
+  void _handleIncomingMessage(String rawMessage) {
+    try {
+      final map = jsonDecode(rawMessage);
+      final event = map['event'];
+      final rawData = map['data'];
+      
+      if (event == 'authenticated') {
+         if (_authCompleter != null && !_authCompleter!.isCompleted) {
+             _authCompleter!.complete(Map<String, dynamic>.from(rawData));
+         }
+      } else if (event == 'status') {
+         _onStatus?.call(Map<String, dynamic>.from(_decryptData(rawData)));
+      } else if (event == 'media-update') {
+         _onMediaUpdate?.call(Map<String, dynamic>.from(_decryptData(rawData)));
+      } else if (event == 'foreground-app-changed') {
+         _onWindowUpdate?.call(Map<String, dynamic>.from(_decryptData(rawData)));
+      } else if (event == 'clipboard-update') {
+         _onClipboardUpdate?.call(_decryptData(rawData).toString());
+      } else if (event == 'file-offer') {
+         _onFileOffer?.call(_decryptData(rawData).toString());
+      } else if (event == 'sync-layout') {
+         _onSyncLayoutCallback?.call(_decryptData(rawData) as List);
+      }
+    } catch (e) {
+       debugPrint('Error handling WS message: $e');
     }
   }
 
   void authenticate(String otp, String deviceName, Function(bool success, String? error) onResult) {
-    if (_socket == null || !_socket!.connected) {
-      onResult(false, "Could not connect to PC. Please check Room ID and ensure both are on the same Wi-Fi.");
+    if (_channel == null) {
+      onResult(false, "Could not connect to PC.");
       return;
     }
 
-    // Clear any previous once listeners to prevent multiple callbacks
-    _socket?.off('authenticated');
-
-    bool responded = false;
-    _socket?.once('authenticated', (data) {
-      responded = true;
-      final mapData = Map<String, dynamic>.from(data);
-      final success = mapData['success'] as bool;
-      final error = mapData['error'] as String?;
-      onResult(success, error);
+    _setEncryptionKey(otp);
+    
+    _authCompleter = Completer<Map<String, dynamic>>();
+    _authCompleter!.future.then((data) {
+       final success = data['success'] as bool;
+       final error = data['error'] as String?;
+       onResult(success, error);
     });
 
-    _setEncryptionKey(otp);
-    _socket?.emit('authenticate', {'otp': otp, 'deviceName': deviceName, 'version': Globals.appVersion});
+    _sendRaw('authenticate', {'otp': otp, 'deviceName': deviceName, 'version': Globals.appVersion});
 
-    // Timeout for authentication
     Future.delayed(const Duration(seconds: 3), () {
-      if (!responded) {
-        _socket?.off('authenticated');
-        onResult(false, "Authentication timed out.");
+      if (_authCompleter != null && !_authCompleter!.isCompleted) {
+        _authCompleter!.complete({'success': false, 'error': "Authentication timed out."});
       }
     });
+  }
+  
+  void _sendRaw(String event, dynamic data) {
+    if (_channel != null) {
+       final payload = jsonEncode({
+         'event': event,
+         'data': data
+       });
+       _channel!.sink.add(payload);
+    }
   }
 
   void emit(String event, dynamic data) {
     if (event == 'authenticate') {
-      _socket?.emit(event, data);
+      _sendRaw(event, data);
     } else {
-      _socket?.emit(event, _encryptData(data));
+      _sendRaw(event, _encryptData(data));
     }
   }
 
   void onSyncLayout(Function(List) callback) {
     _onSyncLayoutCallback = callback;
-    _socket?.on('sync-layout', (data) => callback(_decryptData(data) as List));
   }
 
-  /// Stop Socket.io's internal reconnection loop (for stale-IP fallback).
   void stopReconnecting() {
-    _socket?.disconnect();
-    _socket?.dispose();
-    _socket = null;
+    _intentionalDisconnect = true;
+    _reconnectTimer?.cancel();
+    _channel?.sink.close();
+    _channel = null;
   }
 
-  /// Full disconnect — tears down the socket entirely.
   void disconnect() {
-    _socket?.disconnect();
-    _socket?.dispose();
-    _socket = null;
+    _intentionalDisconnect = true;
+    _reconnectTimer?.cancel();
+    _channel?.sink.close();
+    _channel = null;
   }
 }
