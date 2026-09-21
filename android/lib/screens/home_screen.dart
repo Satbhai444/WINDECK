@@ -117,7 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Icon(Icons.new_releases_rounded, color: Color(0xFF0078d4)),
             SizedBox(width: 8),
-            Text("What's New in v2.3.9", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+            Text("What's New in v2.3.10", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
           ],
         ),
         content: SingleChildScrollView(
