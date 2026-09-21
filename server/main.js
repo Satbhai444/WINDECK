@@ -1,6 +1,7 @@
-const { app, BrowserWindow, ipcMain, Tray, Menu, dialog } = require('electron');
+﻿const { app, BrowserWindow, ipcMain, Tray, Menu, dialog } = require('electron');
 const path = require('path');
 const { autoUpdater } = require('electron-updater');
+const QRCode = require('qrcode');
 
 let mainWindow;
 let serverInstance;
@@ -148,7 +149,7 @@ ipcMain.on('create-room', (event, roomName) => {
     if (serverInstance) {
         serverInstance.createRoom(roomName);
         let roomId = serverInstance.getEncodedRoomId();
-        QRCode.toDataURL(roomId, { color: { dark: '#0078d4', light: '#0000' } }, (err, url) => {
+        QRCode.toDataURL(roomId, { color: { dark: '#0078d4', light: '#00000000' }, width: 200 }, (err, url) => {
             event.reply('room-created', { id: roomId, qr: url });
         });
     }
@@ -231,4 +232,5 @@ ipcMain.on('execute-system-action', (event, action) => {
     systemControlsMod.executeAction(action);
 });
 }
+
 
