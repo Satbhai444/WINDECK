@@ -163,7 +163,11 @@
         </div>
 
         <!-- Main Content Area -->
-        <div class="flex-1 overflow-y-auto no-drag p-6 sm:p-10">
+                <div class="flex-1 overflow-y-auto no-drag p-6 sm:p-10 relative">
+            <div id="update-banner" class="hidden absolute top-0 left-0 right-0 bg-[#0078d4] text-white text-xs font-bold py-2 text-center shadow-lg z-50">
+                <span id="update-banner-text">A new update is available!</span>
+                <button onclick="electronAPI.send('trigger-update')" class="ml-4 bg-white/20 px-3 py-1 rounded hover:bg-white/30 transition">Update Now</button>
+            </div>
 
             <!-- Room Creation View -->
             <div id="view-create-room" class="view-section h-full flex-col items-center justify-center">
@@ -227,7 +231,7 @@
                         <div
                             class="flex items-center justify-between bg-white/5 border border-white/5 rounded-xl p-3 mb-6">
                             <span class="text-xs text-white/50">Manual Room ID</span>
-                            <span id="encoded-room-id" class="text-sm font-bold mono text-white">---</span>
+                            <span id="encoded-room-id" class="text-sm font-bold mono text-white">---</span>`n                        </div>`n                        <div class="flex flex-col items-center justify-center bg-white/5 border border-white/5 rounded-xl p-4 mb-6">`n                            <span class="text-xs text-white/50 mb-2">Scan QR to Connect</span>`n                            <img id="qr-code-img" src="" style="width: 150px; height: 150px; display: none;" />`n
                         </div>
 
                         <div class="mt-auto border-t border-white/5 pt-4">
@@ -363,7 +367,7 @@
                                         class="bg-transparent text-center text-sm font-bold text-white border-b border-white/20 focus:outline-none focus:border-[#0078d4] w-32 px-1">
                                     <button onclick="deleteCurrentPage()"
                                         class="text-red-400 hover:text-red-300 text-xs px-2"
-                                        title="Delete Page">🗑</button>
+                                        title="Delete Page">ðŸ—‘</button>
                                 </div>
                                 <button onclick="nextPage()" class="p-1 text-white/50 hover:text-white">&rarr;</button>
                             </div>
@@ -511,7 +515,7 @@
                                 <div draggable="true" id="web-drag-tile"
                                     class="cursor-grab bg-[#0078d4]/20 border border-[#0078d4]/40 rounded-xl p-3 flex flex-col items-center justify-center text-center transition-all hover:bg-[#0078d4]/30"
                                     ondragstart="onDragStartWeb(event)">
-                                    <span class="text-2xl mb-1">🌐</span>
+                                    <span class="text-2xl mb-1">ðŸŒ</span>
                                     <span class="text-[10px] font-semibold text-white truncate w-full px-1">Drag
                                         me</span>
                                 </div>
@@ -657,7 +661,7 @@
                             <div>
                                 <div class="text-sm text-white font-medium">Files Transferred Stay Local</div>
                                 <div class="text-xs text-white/40 mt-0.5">When you use DropZone to transfer files
-                                    between your phone and PC, they are sent directly over your Wi-Fi — never through a
+                                    between your phone and PC, they are sent directly over your Wi-Fi â€” never through a
                                     cloud or external server.</div>
                             </div>
                         </div>
@@ -725,7 +729,7 @@
 
                 <!-- HELP CENTER -->
                 <div class="glass-panel p-6 rounded-3xl border border-white/5">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-[#0078d4] mb-4">Help Center — How to Use
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-[#0078d4] mb-4">Help Center â€” How to Use
                         WinDeck</h3>
                     <div class="space-y-4">
                         <div class="p-4 bg-white/5 rounded-xl border border-white/5">
@@ -754,7 +758,7 @@
                                 <span class="text-sm font-bold text-white">Build Your Layout</span>
                             </div>
                             <p class="text-xs text-white/50 pl-7">Go to the Editor tab. Drag tiles from the panel (PC
-                                Apps, System Controls, Websites) onto the phone preview. Click "Save & Sync" — tiles
+                                Apps, System Controls, Websites) onto the phone preview. Click "Save & Sync" â€” tiles
                                 appear on your phone instantly.</p>
                         </div>
                         <div class="p-4 bg-white/5 rounded-xl border border-white/5">
@@ -764,7 +768,7 @@
                                 <span class="text-sm font-bold text-white">Transfer Files (DropZone)</span>
                             </div>
                             <p class="text-xs text-white/50 pl-7">To send a file from your Phone to PC: tap the DropZone
-                                tile on your phone, select a file — it lands in your PC's Downloads folder. To send from
+                                tile on your phone, select a file â€” it lands in your PC's Downloads folder. To send from
                                 PC to Phone: click the "Send to Phone" box on the Dashboard, choose a file, and it opens
                                 on your phone automatically.</p>
                         </div>
@@ -774,7 +778,7 @@
                                     class="w-5 h-5 rounded-full bg-[#0078d4] text-white text-[10px] font-bold flex items-center justify-center shrink-0">5</span>
                                 <span class="text-sm font-bold text-white">Rename Your Device</span>
                             </div>
-                            <p class="text-xs text-white/50 pl-7">On the Dashboard, click the ✏️ pencil icon next to
+                            <p class="text-xs text-white/50 pl-7">On the Dashboard, click the âœï¸ pencil icon next to
                                 your connected device name to give it a custom label. It is saved for future sessions.
                             </p>
                         </div>
@@ -796,7 +800,7 @@
                         <div class="border-t border-white/5 pt-4">
                             <div class="text-sm text-white font-semibold mb-1">Privacy Policy</div>
                             <p>WinDeck does not collect, store, or transmit any personal data to external parties. All
-                                data — including your device name, layout configuration, and transferred files — remains
+                                data â€” including your device name, layout configuration, and transferred files â€” remains
                                 strictly on your local devices. WinDeck has no backend server, no database, and no user
                                 accounts.</p>
                         </div>
@@ -819,7 +823,7 @@
                 <div class="glass-panel p-6 rounded-3xl border border-white/5">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-[#0078d4] mb-4">About WinDeck</h3>
                     <p class="text-sm text-white/60 leading-relaxed mb-5">
-                        WinDeck was born from a simple idea — why pay for a premium macro pad when your Android phone is
+                        WinDeck was born from a simple idea â€” why pay for a premium macro pad when your Android phone is
                         right there? We wanted a fast, private, fully-local alternative that puts <em>you</em> in
                         control.
                     </p>
@@ -827,7 +831,7 @@
                     <div class="p-4 bg-white/5 rounded-xl border border-white/5 mb-5">
                         <div class="text-xs font-bold text-white/40 uppercase tracking-widest mb-2">Inspiration</div>
                         <p class="text-xs text-white/50 leading-relaxed">WinDeck draws inspiration from <span
-                                class="text-white font-semibold">PhoneDeck</span> — a fantastic web-based tool that lets
+                                class="text-white font-semibold">PhoneDeck</span> â€” a fantastic web-based tool that lets
                             you use your phone as a stream deck. We love what they built. WinDeck takes a different
                             approach: it runs fully on your local network, is open for customization, and targets
                             Windows-native control rather than a browser-based experience.</p>
@@ -863,8 +867,8 @@
                     </div>
 
                     <div class="border-t border-white/5 pt-4 mt-4 flex items-center justify-between">
-                        <div class="text-xs text-white/30 app-version-full-str">WinDeck v2.3.10 • Made with ❤️ for Windows</div>
-                        <div class="text-xs text-white/20">© 2025 WinDeck</div>
+                        <div class="text-xs text-white/30 app-version-full-str">WinDeck v2.3.10 â€¢ Made with â¤ï¸ for Windows</div>
+                        <div class="text-xs text-white/20">Â© 2025 WinDeck</div>
                     </div>
                 </div>
             </div>
@@ -1101,7 +1105,7 @@
                 el.draggable = true;
                 const domain = new URL(site.url).hostname;
                 el.innerHTML = `
-                    <img src="https://www.google.com/s2/favicons?sz=64&domain_url=${domain}" class="w-8 h-8 mb-2 rounded-lg pointer-events-none" onerror="this.outerHTML='<span class=\\'text-xl mb-1\\'>🌐</span>'">
+                    <img src="https://www.google.com/s2/favicons?sz=64&domain_url=${domain}" class="w-8 h-8 mb-2 rounded-lg pointer-events-none" onerror="this.outerHTML='<span class=\\'text-xl mb-1\\'>ðŸŒ</span>'">
                     <span class="text-[10px] font-semibold text-white truncate w-full px-1 pointer-events-none">${site.title}</span>
                 `;
                 el.ondragstart = (e) => {
@@ -1131,7 +1135,7 @@
             document.getElementById('room-name-input').value = savedRoomName || os.hostname();
 
             if (savedRoomName) {
-                // Auto-start server with saved room name — no button click needed on relaunch
+                // Auto-start server with saved room name â€” no button click needed on relaunch
                 createRoom();
             } else {
                 showView('view-create-room');
@@ -1144,7 +1148,7 @@
                 window.electronAPI.getAppVersion().then(ver => {
                     if (ver) {
                         document.querySelectorAll('.app-version-str').forEach(el => el.textContent = 'v' + ver);
-                        document.querySelectorAll('.app-version-full-str').forEach(el => el.textContent = 'WinDeck v' + ver + ' • Made with ❤️ for Windows');
+                        document.querySelectorAll('.app-version-full-str').forEach(el => el.textContent = 'WinDeck v' + ver + ' â€¢ Made with â¤ï¸ for Windows');
                     }
                 }).catch(e => console.error('Failed to get app version:', e));
             }
@@ -1268,7 +1272,7 @@
             const devActive = document.getElementById('device-active');
 
             if (status.connected === 'standby') {
-                info.innerText = `Standby / Away 🟡`;
+                info.innerText = `Standby / Away ðŸŸ¡`;
                 info.classList.remove('text-green-400', 'text-white/70');
                 info.classList.add('text-yellow-400');
                 
@@ -1333,6 +1337,9 @@
                 'globe': '<svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>',
                 'upload': '<svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>',
                 'mouse-pointer': '<svg class="w-6 h-6 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>',
+                'copy': '<svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>',
+                'paste': '<svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>',
+                'undo': '<svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>',
                 'timer': '<svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
             };
             return svgs[iconKey] || svgs[iconKey.toLowerCase()] || `<svg class="w-6 h-6 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>`;
@@ -1361,7 +1368,10 @@
             { id: 'dropzone', type: 'dropzone', title: 'DropZone', icon: 'upload', payload: 'dropzone' },
             { id: 'airmouse', type: 'airmouse', title: 'AirMouse', icon: 'mouse-pointer', payload: 'airmouse' },
             { id: 'webcam', type: 'webcam', title: 'Webcam', icon: 'video', payload: 'webcam' },
-            { id: 'timer_25', type: 'timer', title: 'Timer 25m', icon: 'timer', payload: '25' }
+            { id: 'timer_25', type: 'timer', title: 'Timer 25m', icon: 'timer', payload: '25' },
+            { id: 'copy', title: 'Copy', icon: 'copy', payload: 'copy' },
+            { id: 'paste', title: 'Paste', icon: 'paste', payload: 'paste' },
+            { id: 'undo', title: 'Undo', icon: 'undo', payload: 'undo' }
         ];
 
         function createDefaultPage(name, type, linkedExe, titlePattern) {
@@ -1476,11 +1486,11 @@
 
                     let iconHtml = '';
                     if (tile.type === 'app') {
-                        iconHtml = `<img src="http://localhost:3000/icon?path=${encodeURIComponent(tile.payload)}&name=${encodeURIComponent(tile.title)}" class="w-10 h-10 mb-2 object-contain" onerror="this.outerHTML='<div class=\\'w-10 h-10 mb-2 flex items-center justify-center bg-white/10 rounded-xl\\'>⚙️</div>'">`;
+                        iconHtml = `<img src="http://localhost:3000/icon?path=${encodeURIComponent(tile.payload)}&name=${encodeURIComponent(tile.title)}" class="w-10 h-10 mb-2 object-contain" onerror="this.outerHTML='<div class=\\'w-10 h-10 mb-2 flex items-center justify-center bg-white/10 rounded-xl\\'>âš™ï¸</div>'">`;
                     } else if (tile.type === 'url') {
                         let domain = tile.payload;
                         try { domain = new URL(tile.payload).hostname; } catch (e) { }
-                        iconHtml = `<img src="https://www.google.com/s2/favicons?sz=64&domain_url=${domain}" class="w-10 h-10 mb-2 rounded-xl object-contain pointer-events-none" onerror="this.outerHTML='<div class=\\'w-10 h-10 mb-2 flex items-center justify-center bg-white/10 rounded-xl pointer-events-none\\'>🌐</div>'">`;
+                        iconHtml = `<img src="https://www.google.com/s2/favicons?sz=64&domain_url=${domain}" class="w-10 h-10 mb-2 rounded-xl object-contain pointer-events-none" onerror="this.outerHTML='<div class=\\'w-10 h-10 mb-2 flex items-center justify-center bg-white/10 rounded-xl pointer-events-none\\'>ðŸŒ</div>'">`;
                     } else {
                         iconHtml = `<div class="mb-1 pointer-events-none">${getSvgIcon(tile.iconValue || tile.payload)}</div>`;
                     }
@@ -1544,7 +1554,7 @@
                 id: 'tile_' + Math.random().toString(36).substr(2, 9),
                 type: 'url',
                 title: title,
-                iconValue: '🌐',
+                iconValue: 'ðŸŒ',
                 payload: url
             };
             closeUrlModal();
@@ -1660,7 +1670,7 @@
                 div.draggable = true;
                 div.ondragstart = (e) => onDragStartApp(e, i);
                 div.innerHTML = `
-                    <img src="http://localhost:3000/icon?path=${encodeURIComponent(app.path)}&name=${encodeURIComponent(app.name)}" class="w-8 h-8 mb-2 object-contain pointer-events-none" onerror="this.outerHTML='<div class=\\'w-8 h-8 mb-2 flex items-center justify-center bg-white/10 rounded-xl pointer-events-none\\'>⚙️</div>'">
+                    <img src="http://localhost:3000/icon?path=${encodeURIComponent(app.path)}&name=${encodeURIComponent(app.name)}" class="w-8 h-8 mb-2 object-contain pointer-events-none" onerror="this.outerHTML='<div class=\\'w-8 h-8 mb-2 flex items-center justify-center bg-white/10 rounded-xl pointer-events-none\\'>âš™ï¸</div>'">
                     <span class="text-[10px] font-semibold text-white/80 truncate w-full px-1 pointer-events-none" title="${app.name}">${app.name}</span>
                 `;
                 container.appendChild(div);

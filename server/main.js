@@ -147,7 +147,10 @@ ipcMain.on('regenerate-otp', () => {
 ipcMain.on('create-room', (event, roomName) => {
     if (serverInstance) {
         serverInstance.createRoom(roomName);
-        event.reply('room-created', serverInstance.getEncodedRoomId());
+        let roomId = serverInstance.getEncodedRoomId();
+        QRCode.toDataURL(roomId, { color: { dark: '#0078d4', light: '#0000' } }, (err, url) => {
+            event.reply('room-created', { id: roomId, qr: url });
+        });
     }
 });
 
