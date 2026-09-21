@@ -1,4 +1,4 @@
-﻿name: windeck
+name: windeck
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -38,7 +38,7 @@ dependencies:
   web_socket_channel: ^3.0.1
   audioplayers: ^6.7.1
   flutter_launcher_icons: ^0.14.4
-  permission_handler: ^12.0.3
+  permission_handler: ^13.0.2
   shared_preferences: ^2.5.5
   lottie: ^3.1.2
   vibration: ^3.2.0
